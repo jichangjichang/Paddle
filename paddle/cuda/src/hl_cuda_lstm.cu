@@ -272,6 +272,7 @@ void hl_lstm_parallel_forward(real *gateValue,
                               hl_activation_mode_t active_node,
                               hl_activation_mode_t active_gate,
                               hl_activation_mode_t active_state) {
+#if 0
   CHECK(frameSize == 32 || frameSize == 64);
   dim3 grid(numSequences, 1);
 
@@ -335,6 +336,7 @@ void hl_lstm_parallel_forward(real *gateValue,
       });
     });
   });
+#endif
   CHECK_SYNC("hl_lstm_parallel_forward failed");
 }
 
@@ -630,6 +632,7 @@ void hl_lstm_parallel_backward_data(real *gateValue,
                                     hl_activation_mode_t active_node,
                                     hl_activation_mode_t active_gate,
                                     hl_activation_mode_t active_state) {
+#if 0
   CHECK(frameSize == 32 || frameSize == 64 || frameSize == 128 ||
         frameSize == 256);
   dim3 grid(numSequences, 1);
@@ -789,6 +792,7 @@ void hl_lstm_parallel_backward_data(real *gateValue,
       });
     });
   });
+#endif
   CHECK_SYNC("hl_lstm_parallel_backward_data");
 }
 

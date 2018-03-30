@@ -134,6 +134,7 @@ void hl_gpu_gru_forward(OpResetOutput opResetOutput,
                   frameSize, 2* frameSize, 3*frameSize);
   }
 
+#if 0
   visit_activation(active_gate, [&grid, &threads, &value, &opResetOutput, frameSize, batchSize](auto active_gate) {
     if (batchSize == 1) {
       hipLaunchKernelGGL((KeGruForwardResetOutput<OpResetOutput, /* isBatch= */false, active_gate>),
@@ -145,6 +146,7 @@ void hl_gpu_gru_forward(OpResetOutput opResetOutput,
                          value.resetOutputValue, value.prevOutValue, frameSize, batchSize);
     }
   });
+#endif
 
   if (value.prevOutValue) {
     hl_matrix_mul(value.resetOutputValue, HPPL_OP_N,
@@ -155,6 +157,7 @@ void hl_gpu_gru_forward(OpResetOutput opResetOutput,
                   frameSize, frameSize, 3*frameSize);
   }
 
+#if 0
   visit_activation(active_node, [&grid, &threads, &value, &opFinalOutput, frameSize, batchSize](auto active_node) {
     if (batchSize == 1) {
       hipLaunchKernelGGL((KeGruForwardFinalOutput<OpFinalOutput, /* isBatch= */false, active_node>),
@@ -166,6 +169,7 @@ void hl_gpu_gru_forward(OpResetOutput opResetOutput,
                          value.prevOutValue, value.outputValue, frameSize, batchSize);
     }
   });
+#endif
 
   CHECK_SYNC("hl_gpu_gru_forward failed");
 }
@@ -303,6 +307,7 @@ void hl_gpu_gru_backward(OpStateGrad opStateGrad,
     grid = dim3((frameSize + 32 - 1) / 32, (batchSize + 32 - 1) / 32);
   }
 
+#if 0
   visit_activation(active_node, [&grid, &threads, &value, &grad, &opStateGrad, frameSize, batchSize](auto active_node) {
     if (batchSize == 1) {
       hipLaunchKernelGGL((KeGruBackwardStateGrad<OpStateGrad, /* isBatch= */false, active_node>),
@@ -314,6 +319,7 @@ void hl_gpu_gru_backward(OpStateGrad opStateGrad,
                          value.prevOutValue, grad.prevOutGrad, grad.outputGrad, frameSize, batchSize);
     }
   });
+#endif
 
   if (value.prevOutValue && grad.prevOutGrad) {
     hl_matrix_mul(grad.gateGrad + 2*frameSize, HPPL_OP_N,
@@ -332,6 +338,7 @@ void hl_gpu_gru_backward(OpStateGrad opStateGrad,
     }
   }
 
+#if 0
   visit_activation(active_gate, [&grid, &threads, &value, &grad, &opResetGrad, frameSize, batchSize](auto active_node) {
     if (batchSize == 1) {
       hipLaunchKernelGGL((KeGruBackwardResetGrad<OpResetGrad, /* isBatch= */false, 0>),
@@ -343,6 +350,7 @@ void hl_gpu_gru_backward(OpStateGrad opStateGrad,
                          value.prevOutValue, grad.prevOutGrad, grad.resetOutputGrad, frameSize, batchSize);
     }
   });
+#endif
 
   if (grad.prevOutGrad && value.prevOutValue) {
     hl_matrix_mul(grad.gateGrad, HPPL_OP_N,

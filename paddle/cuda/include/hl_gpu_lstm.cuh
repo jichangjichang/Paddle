@@ -221,6 +221,7 @@ void hl_gpu_lstm_forward(Op op,
     grid = dim3((frameSize + 32 - 1) / 32, (batchSize + 32 - 1) / 32);
   }
 
+#if 0
   visit_activation(active_node, [&op, active_gate, active_state, &grid, &threads, value, frameSize, batchSize](auto active_node) {
     visit_activation(active_gate, [&op, active_node, active_state, &grid, &threads, value, frameSize, batchSize](auto active_gate) {
       visit_activation(active_state, [&op, active_node, active_gate, &grid, &threads, value, frameSize, batchSize](auto active_state) {
@@ -234,6 +235,7 @@ void hl_gpu_lstm_forward(Op op,
       });
     });
   });
+#endif
 
   CHECK_SYNC("hl_gpu_lstm_forward failed");
 }
@@ -260,6 +262,7 @@ void hl_gpu_lstm_backward(Op op,
     grid = dim3((frameSize + 32 - 1) / 32, (batchSize + 32 - 1) / 32);
   }
 
+#if 0
   visit_activation(active_node, [&op, active_gate, active_state, &grid, &threads, value, grad, frameSize, batchSize](auto active_node) {
     visit_activation(active_gate, [&op, active_node, active_state, &grid, &threads, value, grad, frameSize, batchSize](auto active_gate) {
       visit_activation(active_state, [&op, active_node, active_gate, &grid, &threads, value, grad, frameSize, batchSize](auto active_state) {
@@ -273,6 +276,7 @@ void hl_gpu_lstm_backward(Op op,
       });
     });
   });
+#endif
 
   CHECK_SYNC("hl_gpu_lstm_backward failed");
 }
