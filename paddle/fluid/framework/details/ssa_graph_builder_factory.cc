@@ -23,7 +23,7 @@ namespace framework {
 namespace details {
 std::unique_ptr<SSAGraphBuilder> SSAGraphBuilderFactory::Create() {
   std::unique_ptr<SSAGraphBuilder> res(
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
       new MultiDevSSAGraphBuilder(places_, loss_var_name_, param_names_,
                                   local_scopes_, nccl_ctxs_, strategy_)
 #else
