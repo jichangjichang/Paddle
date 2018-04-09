@@ -18,7 +18,6 @@
 #include "paddle/fluid/framework/details/reduce_and_gather.h"
 #include "paddle/fluid/framework/details/variable_visitor.h"
 #include "paddle/fluid/platform/profiler.h"
-
 namespace paddle {
 namespace framework {
 namespace details {

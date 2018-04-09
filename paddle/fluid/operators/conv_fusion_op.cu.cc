@@ -14,7 +14,12 @@ limitations under the License. */
 
 #include "paddle/fluid/framework/op_registry.h"
 #include "paddle/fluid/operators/conv_cudnn_op_cache.h"
+#ifdef PADDLE_WIFH_CUDA
 #include "paddle/fluid/platform/cudnn_helper.h"
+#endif
+#ifdef PADDLE_WITH_HIP
+#include "paddle/fluid/platform/miopen_helper.h"
+#endif
 
 DECLARE_uint64(conv_workspace_size_limit);
 DECLARE_bool(cudnn_exhaustive_search);
