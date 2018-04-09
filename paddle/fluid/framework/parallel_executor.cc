@@ -23,6 +23,9 @@ limitations under the License. */
 #if defined(PADDLE_WITH_CUDA) && !defined(_WIN32)
 #include "paddle/fluid/platform/nccl_helper.h"
 #endif
+#ifdef PADDLE_WITH_HIP
+#include "paddle/fluid/platform/rccl_helper.h"
+#endif
 
 #include "paddle/fluid/framework/details/fast_threaded_ssa_graph_executor.h"
 #include "paddle/fluid/framework/details/multi_devices_helper.h"
@@ -54,7 +57,7 @@ class ParallelExecutorPrivate {
   Scope *global_scope_;  // not owned
   std::unique_ptr<details::SSAGraphExecutor> executor_;
 
-#if defined(PADDLE_WITH_CUDA) && !defined(_WIN32)
+#if ((defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)) && !defined(_WIN32))
   std::unique_ptr<platform::NCCLContextMap> nccl_ctxs_;
 #endif
   bool own_local_scope_;
@@ -112,11 +115,19 @@ ParallelExecutor::ParallelExecutor(
     }
     member_->nccl_ctxs_.reset(new platform::NCCLContextMap(
         member_->places_, nccl_id, num_trainers, trainer_id));
-#else
-    PADDLE_THROW("Not compiled with CUDA");
 #endif
   }
-
+  if (member_->use_cuda_) {
+#ifdef PADDLE_WITH_HIP
+    auto *nccl_id_var = scope->FindVar(NCCL_ID_VARNAME);
+    rcclUniqueId *nccl_id = nullptr;
+    if (nccl_id_var != nullptr) {
+      nccl_id = nccl_id_var->GetMutable<rcclUniqueId>();
+    }
+    member_->nccl_ctxs_.reset(new platform::NCCLContextMap(
+        member_->places_, nccl_id, num_trainers, trainer_id));
+#endif
+  }
   if (member_->local_scopes_.size() != 1 && local_scopes.empty()) {
     BCastParamsToDevices(bcast_vars);
   }
@@ -124,7 +135,7 @@ ParallelExecutor::ParallelExecutor(
 
 // Step 2. Convert main_program to SSA form and dependency graph. Also, insert
 // ncclOp
-#if defined(PADDLE_WITH_CUDA) && !defined(_WIN32)
+#if ((defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)) && !defined(_WIN32))
   std::unique_ptr<ir::Graph> graph = build_strategy.Apply(
       main_program, member_->places_, loss_var_name, params,
       member_->local_scopes_, member_->use_cuda_, member_->nccl_ctxs_.get());
@@ -213,10 +224,15 @@ void ParallelExecutor::BCastParamsToDevices(
     }
     auto &dims = main_tensor.dims();
     if (paddle::platform::is_gpu_place(main_tensor.place())) {
-#if defined(PADDLE_WITH_CUDA) && !defined(_WIN32)
+#if ((defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)) && !defined(_WIN32))
       std::vector<void *> buffers;
       size_t numel = main_tensor.numel();
+#ifdef PADDLE_WITH_CUDA
       ncclDataType_t data_type = platform::ToNCCLDataType(main_tensor.type());
+#endif
+#ifdef PADDLE_WITH_HIP
+      rcclDataType_t data_type = platform::ToNCCLDataType(main_tensor.type());
+#endif
       for (size_t i = 0; i < member_->places_.size(); ++i) {
         auto place = member_->places_[i];
         void *buffer;
@@ -236,11 +252,28 @@ void ParallelExecutor::BCastParamsToDevices(
                         "variables' buffer size to bcast NOT equal to places");
       {
         platform::NCCLGroupGuard guard;
+#ifdef PADDLE_WITH_CUDA 
         for (size_t i = 0; i < member_->places_.size(); ++i) {
           auto &nccl_ctx = member_->nccl_ctxs_->at(member_->places_[i]);
           platform::dynload::ncclBcast(buffers[i], numel, data_type, 0,
                                        nccl_ctx.comm_, nccl_ctx.stream());
         }
+#endif
+#ifdef PADDLE_WITH_HIP
+        for (size_t i = 0; i < member_->places_.size(); ++i) {
+          auto &nccl_ctx = member_->nccl_ctxs_->at(member_->places_[i]);
+          if (initializing) {
+            platform::dynload::rcclBcast(buffers[i], numel, data_type, 0,
+                                         nccl_ctx.comm_, nccl_ctx.stream());
+          } else {
+            if (var_dev_id >= 0) {
+              platform::dynload::rcclBcast(buffers[i], numel, data_type,
+                                           var_dev_id, nccl_ctx.comm_,
+                                           nccl_ctx.stream());
+            }
+          }
+        }
+#endif
         member_->nccl_ctxs_->WaitAll();
       }
 #else
@@ -271,7 +304,7 @@ void ParallelExecutor::BCastParamsToDevices(
 void ParallelExecutor::Run(const std::vector<std::string> &fetch_tensors,
                            const std::string &fetched_var_name) {
   platform::RecordBlock b(0);
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
   if (!gcs_.empty()) {
     ResetReferenceCount();
     for (auto &pair : cur_ref_cnts_) {
@@ -333,6 +366,6 @@ ParallelExecutor::~ParallelExecutor() {
 
 }  // namespace framework
 }  // namespace paddle
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
 USE_PASS(reference_count_pass);
 #endif
