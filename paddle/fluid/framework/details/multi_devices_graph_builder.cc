@@ -391,7 +391,6 @@ int MultiDevSSAGraphBuilder::GetVarDeviceID(const std::string &varname) const {
 void MultiDevSSAGraphBuilder::CreateScaleLossGradOp(SSAGraph *result) const {
   for (size_t i = 0; i < places_.size(); ++i) {
 // Insert ScaleCost OpHandle
-<<<<<<< ac6c118b93f127af9bade242ef6c5b0497cbca80
 #if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
     auto *communication_dev_ctx =
         nccl_ctxs_ ? nccl_ctxs_->DevCtx(places_[i])

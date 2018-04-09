@@ -17,6 +17,11 @@ limitations under the License. */
 #ifdef PADDLE_WITH_CUDA
 #include <nccl.h>
 #endif
+
+#ifdef PADDLE_WITH_HIP
+#include <rccl.h>
+#endif
+
 #include <sys/time.h>
 #include <thread>  // NOLINT
 
@@ -56,7 +61,7 @@ void GetTensorPayload(framework::Variable* var,
     }
   }
   if (platform::is_gpu_place(ctx.GetPlace())) {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
     PADDLE_ENFORCE(platform::is_gpu_place(tensor.place()));
     platform::CUDAPinnedPlace cuda_pinned;
     auto& gpu_dev_ctx = static_cast<const platform::CUDADeviceContext&>(ctx);
@@ -90,7 +95,7 @@ void GetSelectedRowsPayload(framework::Variable* var,
 
   auto* tensor = slr->mutable_value();
   if (platform::is_gpu_place(ctx.GetPlace())) {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
     platform::CUDAPinnedPlace cuda_pinned;
     auto& gpu_dev_ctx = static_cast<const platform::CUDADeviceContext&>(ctx);
     auto copy_size = tensor->numel() * framework::SizeOfType(tensor->type());
@@ -143,13 +148,17 @@ void SerializeToByteBuffer(const std::string& name, framework::Variable* var,
   } else if (var->IsType<ncclUniqueId>()) {
     request.set_type(::sendrecv::NCCL_ID);
 #endif
+#ifdef PADDLE_WITH_HIP
+  } else if (var->IsType<rcclUniqueId>()) {
+    request.set_type(::sendrecv::NCCL_ID);
+#endif
   } else {
     PADDLE_THROW("Serialize does not support type: %s",
                  typeid(var->Type()).name());
   }
 
   if (platform::is_gpu_place(ctx.GetPlace())) {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
     // GPU data is copied to CPU buffer when sending,
     // free the buffer when possible.
     destroy_callback = [](void* backing) {
@@ -173,6 +182,23 @@ void SerializeToByteBuffer(const std::string& name, framework::Variable* var,
                               NCCL_UNIQUE_ID_BYTES);
     const ncclUniqueId& uid = var->Get<ncclUniqueId>();
     e.WriteRawBytes(std::string(uid.internal, NCCL_UNIQUE_ID_BYTES));
+
+    // for serialize NCCL_ID
+    ::grpc::Slice slices(e.size());
+    memcpy(const_cast<uint8_t*>(slices.begin()), e.data(), e.size());
+    ::grpc::ByteBuffer tmp(&slices, 1);
+    msg->Swap(&tmp);
+    return;
+  }
+#endif
+
+//Todo: need RCCL multi-node support
+#if 0
+  if (var->IsType<rcclUniqueId>()) {
+    e.WriteVarlengthBeginning(VarMsg::kSerializedFieldNumber,
+                              128);
+    const rcclUniqueId& uid = var->Get<rcclUniqueId>();
+    e.WriteRawBytes(std::string((uid->pool).deviceIds,128));
 
     // for serialize NCCL_ID
     ::grpc::Slice slices(e.size());
