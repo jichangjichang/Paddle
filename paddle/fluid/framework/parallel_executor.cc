@@ -22,8 +22,16 @@ limitations under the License. */
 #include "paddle/fluid/platform/nccl_helper.h"
 #endif
 
+<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
 #include "paddle/fluid/framework/details/scope_buffered_ssa_graph_executor.h"
 #include "paddle/fluid/framework/details/ssa_graph_builder_factory.h"
+=======
+#ifdef PADDLE_WITH_HIP
+#include "paddle/fluid/platform/rccl_helper.h"
+#endif
+
+#include "paddle/fluid/framework/details/multi_devices_graph_builder.h"
+>>>>>>> Add HIP support to fluid/framework.
 #include "paddle/fluid/framework/details/threaded_ssa_graph_executor.h"
 #include "paddle/fluid/platform/profiler.h"
 
@@ -40,7 +48,7 @@ class ParallelExecutorPrivate {
   Scope *global_scope_;
   std::unique_ptr<details::SSAGraphExecutor> executor_;
 
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
   std::unique_ptr<platform::NCCLContextMap> nccl_ctxs_;
 #endif
   bool own_local_scope_;
@@ -81,6 +89,7 @@ ParallelExecutor::ParallelExecutor(
 
   if (member_->use_cuda_) {
 // Bcast Parameters to all GPUs
+<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
 #ifdef PADDLE_WITH_CUDA
     auto *nccl_id_var = scope->FindVar(NCCL_ID_VARNAME);
     ncclUniqueId *nccl_id = nullptr;
@@ -91,6 +100,16 @@ ParallelExecutor::ParallelExecutor(
         member_->places_, nccl_id, num_trainers, trainer_id));
 #else
     PADDLE_THROW("Not compiled with CUDA");
+=======
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
+  auto *nccl_id_var = scope->FindVar(NCCL_ID_VARNAME);
+  ncclUniqueId *nccl_id = nullptr;
+  if (nccl_id_var != nullptr) {
+    nccl_id = nccl_id_var->GetMutable<ncclUniqueId>();
+  }
+  member_->nccl_ctxs_.reset(new platform::NCCLContextMap(
+      member_->places_, nccl_id, num_trainers, trainer_id));
+>>>>>>> Add HIP support to fluid/framework.
 #endif
   }
 
@@ -99,6 +118,7 @@ ParallelExecutor::ParallelExecutor(
   }
   // Startup Program has been run. All local scopes has correct parameters.
 
+<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
   // Step 2. Create vars in each scope;
   std::vector<details::VariableInfo> var_infos;
   for (auto *var : main_program.Block(0).AllVars()) {
@@ -111,6 +131,12 @@ ParallelExecutor::ParallelExecutor(
   // Step 3. Convert main_program to SSA form and dependency graph. Also, insert
   // ncclOp
   details::SSAGraphBuilderFactory builder_factory(
+=======
+// Step 2. Convert main_program to SSA form and dependency graph. Also, insert
+// ncclOp
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
+  details::MultiDevSSAGraphBuilder builder(
+>>>>>>> Add HIP support to fluid/framework.
       member_->places_, loss_var_name, params, member_->local_scopes_,
       build_strategy);
   if (member_->use_cuda_) {
@@ -133,10 +159,15 @@ ParallelExecutor::ParallelExecutor(
 
 void ParallelExecutor::BCastParamsToGPUs(
     const std::unordered_set<std::string> &vars) const {
+<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
   // the the initializing bcast, all vars would be bcast from device(0),
   // otherwise
   // bcast from the specified device.
   bool initializing = builder_.get() == nullptr ? true : false;
+=======
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
+  auto *main_scope = member_->local_scopes_[0];
+>>>>>>> Add HIP support to fluid/framework.
 
   for (auto &var : vars) {
     int var_dev_id =
@@ -160,7 +191,11 @@ void ParallelExecutor::BCastParamsToGPUs(
 #ifdef PADDLE_WITH_CUDA
       std::vector<void *> buffers;
       size_t numel = main_tensor.numel();
+<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
       ncclDataType_t data_type = platform::ToNCCLDataType(main_tensor.type());
+=======
+      platform::NCCLGroupGuard guard;
+>>>>>>> Add HIP support to fluid/framework.
       for (size_t i = 0; i < member_->places_.size(); ++i) {
         auto place = member_->places_[i];
         void *buffer;
