@@ -31,7 +31,7 @@ namespace paddle {
 namespace framework {
 namespace details {
 
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
 MultiDevSSAGraphBuilder::MultiDevSSAGraphBuilder(
     const std::vector<platform::Place> &places,
     const std::string &loss_var_name,
@@ -305,7 +305,7 @@ void MultiDevSSAGraphBuilder::SetCommunicationContext(
 void MultiDevSSAGraphBuilder::CreateBroadcastOp(SSAGraph *result,
                                                 const std::string &p_name,
                                                 size_t src_dev_id) const {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
   auto *op_handle = new BroadcastOpHandle(local_scopes_, places_, nccl_ctxs_);
 #else
   auto *op_handle = new BroadcastOpHandle(local_scopes_, places_);
@@ -335,7 +335,7 @@ void MultiDevSSAGraphBuilder::CreateComputationalOp(SSAGraph *result,
 
 void MultiDevSSAGraphBuilder::InsertAllReduceOp(SSAGraph *result,
                                                 const std::string &og) const {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
   result->ops_.emplace_back(
       new AllReduceOpHandle(local_scopes_, places_, nccl_ctxs_));
 #else
@@ -391,7 +391,8 @@ int MultiDevSSAGraphBuilder::GetVarDeviceID(const std::string &varname) const {
 void MultiDevSSAGraphBuilder::CreateScaleLossGradOp(SSAGraph *result) const {
   for (size_t i = 0; i < places_.size(); ++i) {
 // Insert ScaleCost OpHandle
-#ifdef PADDLE_WITH_CUDA
+<<<<<<< ac6c118b93f127af9bade242ef6c5b0497cbca80
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
     auto *communication_dev_ctx =
         nccl_ctxs_ ? nccl_ctxs_->DevCtx(places_[i])
                    : platform::DeviceContextPool::Instance().Get(places_[i]);
@@ -430,7 +431,7 @@ void MultiDevSSAGraphBuilder::CreateComputationalOps(SSAGraph *result,
 VarHandle *MultiDevSSAGraphBuilder::CreateReduceOp(SSAGraph *result,
                                                    const std::string &og,
                                                    int dst_dev_id) const {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
   result->ops_.emplace_back(
       new ReduceOpHandle(local_scopes_, places_, nccl_ctxs_));
 #else
