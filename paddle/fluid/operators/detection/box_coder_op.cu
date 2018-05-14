@@ -152,11 +152,11 @@ class BoxCoderCUDAKernel : public framework::OpKernel<T> {
     bool normalized = context.Attr<bool>("box_normalized");
     if (code_type == BoxCodeType::kEncodeCenterSize) {
       hipLaunchKernelGGL((EncodeCenterSizeKernel<T>), dim3(grid), dim3(block), 0, device_ctx.stream(),
-          prior_box_data, prior_box_var_data, target_box_data, row, col, len,
+          prior_box_data, prior_box_var_data, target_box_data, int(row), int(col), int(len),
           normalized, output);
     } else if (code_type == BoxCodeType::kDecodeCenterSize) {
       hipLaunchKernelGGL((DecodeCenterSizeKernel<T>), dim3(grid), dim3(block), 0, device_ctx.stream(),
-          prior_box_data, prior_box_var_data, target_box_data, row, col, len,
+          prior_box_data, prior_box_var_data, target_box_data, int(row), int(col), int(len),
           normalized, output);
     }
   }
