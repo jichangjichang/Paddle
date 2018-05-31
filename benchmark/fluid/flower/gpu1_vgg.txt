@@ -1,0 +1,42 @@
+----------- resnet Configuration Arguments -----------
+batch_size: 32
+data_format: NCHW
+data_set: flowers
+device: GPU
+gpus: 1
+infer_only: False
+iterations: 8
+learning_rate: 0.001
+memory_optimize: False
+model: vgg
+no_test: True
+pass_num: 1
+profile: False
+skip_batch_num: 5
+update_method: local
+use_cprof: False
+use_fake_data: False
+use_nvprof: False
+------------------------------------------------
+Pass: 0, Iter: 1, Loss: 4.814508
+
+Pass: 0, Iter: 2, Loss: 4.731826
+
+Pass: 0, Iter: 3, Loss: 4.807541
+
+Pass: 0, Iter: 4, Loss: 4.749869
+
+Pass: 0, Iter: 5, Loss: 4.783117
+
+Pass: 0, Iter: 6, Loss: 4.791464
+
+Pass: 0, Iter: 7, Loss: 4.780124
+
+Pass: 0, Iter: 8, Loss: 4.785119
+
+
+Total examples: 96, total time: 2.64185, 36.33812 examples/sec
+
+Pass: 0, Loss: 4.785119
+
+

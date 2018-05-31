@@ -1,0 +1,186 @@
+----------- resnet Configuration Arguments -----------
+batch_size: 32
+data_format: NCHW
+data_set: flowers
+device: GPU
+gpus: 1
+infer_only: False
+iterations: 80
+learning_rate: 0.001
+memory_optimize: False
+model: resnet
+no_test: True
+pass_num: 100
+profile: False
+skip_batch_num: 5
+update_method: local
+use_cprof: False
+use_fake_data: False
+use_nvprof: False
+------------------------------------------------
+Pass: 0, Iter: 1, Loss: 5.737345
+
+Pass: 0, Iter: 2, Loss: 5.351847
+
+Pass: 0, Iter: 3, Loss: 5.305197
+
+Pass: 0, Iter: 4, Loss: 5.411398
+
+Pass: 0, Iter: 5, Loss: 5.464768
+
+Pass: 0, Iter: 6, Loss: 5.408456
+
+Pass: 0, Iter: 7, Loss: 5.408211
+
+Pass: 0, Iter: 8, Loss: 5.340872
+
+Pass: 0, Iter: 9, Loss: 5.393883
+
+Pass: 0, Iter: 10, Loss: 5.494674
+
+Pass: 0, Iter: 11, Loss: 5.550794
+
+Pass: 0, Iter: 12, Loss: 5.666199
+
+Pass: 0, Iter: 13, Loss: 5.685990
+
+Pass: 0, Iter: 14, Loss: 5.789865
+
+Pass: 0, Iter: 15, Loss: 5.852050
+
+Pass: 0, Iter: 16, Loss: 5.921526
+
+Pass: 0, Iter: 17, Loss: 5.947537
+
+Pass: 0, Iter: 18, Loss: 5.959295
+
+Pass: 0, Iter: 19, Loss: 5.980321
+
+Pass: 0, Iter: 20, Loss: 5.986938
+
+Pass: 0, Iter: 21, Loss: 6.044557
+
+Pass: 0, Iter: 22, Loss: 6.012059
+
+Pass: 0, Iter: 23, Loss: 6.000102
+
+Pass: 0, Iter: 24, Loss: 6.076871
+
+Pass: 0, Iter: 25, Loss: 6.161985
+
+Pass: 0, Iter: 26, Loss: 6.231217
+
+Pass: 0, Iter: 27, Loss: 6.294590
+
+Pass: 0, Iter: 28, Loss: 6.297154
+
+Pass: 0, Iter: 29, Loss: 6.343672
+
+Pass: 0, Iter: 30, Loss: 6.346385
+
+Pass: 0, Iter: 31, Loss: 6.343626
+
+Pass: 0, Iter: 32, Loss: 6.344867
+
+Pass: 0, Iter: 33, Loss: 6.350348
+
+Pass: 0, Iter: 34, Loss: 6.344179
+
+Pass: 0, Iter: 35, Loss: 6.346174
+
+Pass: 0, Iter: 36, Loss: 6.335871
+
+Pass: 0, Iter: 37, Loss: 6.336825
+
+Pass: 0, Iter: 38, Loss: 6.340895
+
+Pass: 0, Iter: 39, Loss: 6.375932
+
+Pass: 0, Iter: 40, Loss: 6.361214
+
+Pass: 0, Iter: 41, Loss: 6.337822
+
+Pass: 0, Iter: 42, Loss: 6.349041
+
+Pass: 0, Iter: 43, Loss: 6.345609
+
+Pass: 0, Iter: 44, Loss: 6.340256
+
+Pass: 0, Iter: 45, Loss: 6.312933
+
+Pass: 0, Iter: 46, Loss: 6.284843
+
+Pass: 0, Iter: 47, Loss: 6.292126
+
+Pass: 0, Iter: 48, Loss: 6.313352
+
+Pass: 0, Iter: 49, Loss: 6.319755
+
+Pass: 0, Iter: 50, Loss: 6.304968
+
+Pass: 0, Iter: 51, Loss: 6.300175
+
+Pass: 0, Iter: 52, Loss: 6.302376
+
+Pass: 0, Iter: 53, Loss: 6.295064
+
+Pass: 0, Iter: 54, Loss: 6.272391
+
+Pass: 0, Iter: 55, Loss: 6.258968
+
+Pass: 0, Iter: 56, Loss: 6.233230
+
+Pass: 0, Iter: 57, Loss: 6.206905
+
+Pass: 0, Iter: 58, Loss: 6.210927
+
+Pass: 0, Iter: 59, Loss: 6.192693
+
+Pass: 0, Iter: 60, Loss: 6.173608
+
+Pass: 0, Iter: 61, Loss: 6.159311
+
+Pass: 0, Iter: 62, Loss: 6.137281
+
+Pass: 0, Iter: 63, Loss: 6.126053
+
+Pass: 0, Iter: 64, Loss: 6.116290
+
+Pass: 0, Iter: 65, Loss: 6.100847
+
+Pass: 0, Iter: 66, Loss: 6.086937
+
+Pass: 0, Iter: 67, Loss: 6.073675
+
+Pass: 0, Iter: 68, Loss: 6.062683
+
+Pass: 0, Iter: 69, Loss: 6.042136
+
+Pass: 0, Iter: 70, Loss: 6.037005
+
+Pass: 0, Iter: 71, Loss: 6.023118
+
+Pass: 0, Iter: 72, Loss: 6.010449
+
+Pass: 0, Iter: 73, Loss: 6.011678
+
+Pass: 0, Iter: 74, Loss: 6.000979
+
+Pass: 0, Iter: 75, Loss: 5.981458
+
+Pass: 0, Iter: 76, Loss: 5.972024
+
+Pass: 0, Iter: 77, Loss: 5.948164
+
+Pass: 0, Iter: 78, Loss: 5.931913
+
+Pass: 0, Iter: 79, Loss: 5.922387
+
+Pass: 0, Iter: 80, Loss: 5.916133
+
+
+Total examples: 2400, total time: 20.91364, 114.75766 examples/sec
+
+Pass: 0, Loss: 5.916133
+
+
