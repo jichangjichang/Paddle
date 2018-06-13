@@ -69,6 +69,7 @@ void InitP2P(std::vector<int> devices) {
 #endif
 #ifdef PADDLE_WITH_HIP
   std::call_once(p2p_init_flag, [&]() {
+    int count = devices.size();
     for (int i = 0; i < count; ++i) {
       for (int j = 0; j < count; ++j) {
         if (i == j) continue;
@@ -90,7 +91,7 @@ void InitP2P(std::vector<int> devices) {
 void InitDevices(bool init_p2p) {
   /*Init all available devices by default */
   std::vector<int> devices;
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
   try {
     int count = platform::GetCUDADeviceCount();
     for (int i = 0; i < count; ++i) {

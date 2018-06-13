@@ -21,17 +21,12 @@ limitations under the License. */
 #ifdef PADDLE_WITH_CUDA
 #include "paddle/fluid/platform/nccl_helper.h"
 #endif
-
-<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
-#include "paddle/fluid/framework/details/scope_buffered_ssa_graph_executor.h"
-#include "paddle/fluid/framework/details/ssa_graph_builder_factory.h"
-=======
 #ifdef PADDLE_WITH_HIP
 #include "paddle/fluid/platform/rccl_helper.h"
 #endif
 
-#include "paddle/fluid/framework/details/multi_devices_graph_builder.h"
->>>>>>> Add HIP support to fluid/framework.
+#include "paddle/fluid/framework/details/scope_buffered_ssa_graph_executor.h"
+#include "paddle/fluid/framework/details/ssa_graph_builder_factory.h"
 #include "paddle/fluid/framework/details/threaded_ssa_graph_executor.h"
 #include "paddle/fluid/platform/profiler.h"
 
@@ -89,7 +84,6 @@ ParallelExecutor::ParallelExecutor(
 
   if (member_->use_cuda_) {
 // Bcast Parameters to all GPUs
-<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
 #ifdef PADDLE_WITH_CUDA
     auto *nccl_id_var = scope->FindVar(NCCL_ID_VARNAME);
     ncclUniqueId *nccl_id = nullptr;
@@ -98,27 +92,24 @@ ParallelExecutor::ParallelExecutor(
     }
     member_->nccl_ctxs_.reset(new platform::NCCLContextMap(
         member_->places_, nccl_id, num_trainers, trainer_id));
-#else
-    PADDLE_THROW("Not compiled with CUDA");
-=======
-#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
-  auto *nccl_id_var = scope->FindVar(NCCL_ID_VARNAME);
-  ncclUniqueId *nccl_id = nullptr;
-  if (nccl_id_var != nullptr) {
-    nccl_id = nccl_id_var->GetMutable<ncclUniqueId>();
-  }
-  member_->nccl_ctxs_.reset(new platform::NCCLContextMap(
-      member_->places_, nccl_id, num_trainers, trainer_id));
->>>>>>> Add HIP support to fluid/framework.
 #endif
   }
-
+  if (member_->use_cuda_) {
+#ifdef PADDLE_WITH_HIP
+    auto *nccl_id_var = scope->FindVar(NCCL_ID_VARNAME);
+    rcclUniqueId *nccl_id = nullptr;
+    if (nccl_id_var != nullptr) {
+      nccl_id = nccl_id_var->GetMutable<rcclUniqueId>();
+    }
+    member_->nccl_ctxs_.reset(new platform::NCCLContextMap(
+        member_->places_, nccl_id, num_trainers, trainer_id));
+#endif
+  }
   if (member_->local_scopes_.size() != 1 && local_scopes.empty()) {
     BCastParamsToGPUs(bcast_vars);
   }
   // Startup Program has been run. All local scopes has correct parameters.
 
-<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
   // Step 2. Create vars in each scope;
   std::vector<details::VariableInfo> var_infos;
   for (auto *var : main_program.Block(0).AllVars()) {
@@ -131,16 +122,10 @@ ParallelExecutor::ParallelExecutor(
   // Step 3. Convert main_program to SSA form and dependency graph. Also, insert
   // ncclOp
   details::SSAGraphBuilderFactory builder_factory(
-=======
-// Step 2. Convert main_program to SSA form and dependency graph. Also, insert
-// ncclOp
-#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
-  details::MultiDevSSAGraphBuilder builder(
->>>>>>> Add HIP support to fluid/framework.
       member_->places_, loss_var_name, params, member_->local_scopes_,
       build_strategy);
   if (member_->use_cuda_) {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
     builder_factory.SetNCCLContextMap(member_->nccl_ctxs_.get());
 #else
     PADDLE_THROW("Not compiled with CUDA");
@@ -159,15 +144,10 @@ ParallelExecutor::ParallelExecutor(
 
 void ParallelExecutor::BCastParamsToGPUs(
     const std::unordered_set<std::string> &vars) const {
-<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
   // the the initializing bcast, all vars would be bcast from device(0),
   // otherwise
   // bcast from the specified device.
   bool initializing = builder_.get() == nullptr ? true : false;
-=======
-#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
-  auto *main_scope = member_->local_scopes_[0];
->>>>>>> Add HIP support to fluid/framework.
 
   for (auto &var : vars) {
     int var_dev_id =
@@ -188,14 +168,15 @@ void ParallelExecutor::BCastParamsToGPUs(
     auto &main_tensor = main_var->Get<LoDTensor>();
     auto &dims = main_tensor.dims();
     if (paddle::platform::is_gpu_place(main_tensor.place())) {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
       std::vector<void *> buffers;
       size_t numel = main_tensor.numel();
-<<<<<<< 7b24dc1edc7192802602892ce72ef3856dca1a99
+#ifdef PADDLE_WITH_CUDA
       ncclDataType_t data_type = platform::ToNCCLDataType(main_tensor.type());
-=======
-      platform::NCCLGroupGuard guard;
->>>>>>> Add HIP support to fluid/framework.
+#endif
+#ifdef PADDLE_WITH_HIP
+      rcclDataType_t data_type = platform::ToNCCLDataType(main_tensor.type());
+#endif
       for (size_t i = 0; i < member_->places_.size(); ++i) {
         auto place = member_->places_[i];
         void *buffer;
@@ -216,6 +197,7 @@ void ParallelExecutor::BCastParamsToGPUs(
                         "variables' buffer size to bcast NOT equal to places");
       {
         platform::NCCLGroupGuard guard;
+#ifdef PADDLE_WITH_CUDA 
         for (size_t i = 0; i < member_->places_.size(); ++i) {
           auto &nccl_ctx = member_->nccl_ctxs_->at(member_->places_[i]);
           if (initializing) {
@@ -229,9 +211,24 @@ void ParallelExecutor::BCastParamsToGPUs(
             }
           }
         }
+#endif
+#ifdef PADDLE_WITH_HIP
+        for (size_t i = 0; i < member_->places_.size(); ++i) {
+          auto &nccl_ctx = member_->nccl_ctxs_->at(member_->places_[i]);
+          if (initializing) {
+            platform::dynload::rcclBcast(buffers[i], numel, data_type, 0,
+                                         nccl_ctx.comm_, nccl_ctx.stream());
+          } else {
+            if (var_dev_id >= 0) {
+              platform::dynload::rcclBcast(buffers[i], numel, data_type,
+                                           var_dev_id, nccl_ctx.comm_,
+                                           nccl_ctx.stream());
+            }
+          }
+        }
+#endif
         member_->nccl_ctxs_->WaitAll();
       }
-
 #else
       PADDLE_THROW("Not compiled with CUDA");
 #endif

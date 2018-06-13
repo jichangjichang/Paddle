@@ -93,6 +93,7 @@ void AllReduceOpHandle::RunImpl() {
           PADDLE_ENFORCE(platform::dynload::rcclAllReduce(
               buffer, buffer, numel, static_cast<rcclDataType_t>(dtype),
               rcclSum, comm, stream));
+        });
 #else
         all_reduce_calls.emplace_back([=] {
           PADDLE_ENFORCE(platform::dynload::ncclAllReduce(
