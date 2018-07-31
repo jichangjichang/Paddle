@@ -134,8 +134,7 @@ EOF
         -DWITH_FLUID_ONLY=${WITH_FLUID_ONLY:-OFF} \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
         -DWITH_CONTRIB=${WITH_CONTRIB:-ON} \
-        -DWITH_ANAKIN=${WITH_ANAKIN:-OFF}
-        -DCMAKE_CXX_FLAGS_RELEASE="-O0 -DNDEBUG" \
+        -DWITH_ANAKIN=${WITH_ANAKIN:-OFF} 
 }
 
 function abort(){
@@ -497,7 +496,7 @@ EOF
         cd ${PADDLE_ROOT}/build
         mv fluid_install_dir fluid
         tar -cf fluid.tgz fluid
-      fi
+    fi
 }
 
 function main() {
@@ -559,5 +558,6 @@ function main() {
         ;;
       esac
 }
+
 
 main $@
