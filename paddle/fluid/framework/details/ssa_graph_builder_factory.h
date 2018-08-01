@@ -23,6 +23,9 @@
 #ifdef PADDLE_WITH_CUDA
 #include "paddle/fluid/platform/nccl_helper.h"
 #endif
+#ifdef PADDLE_WITH_HIP
+#include "paddle/fluid/platform/rccl_helper.h"
+#endif
 
 namespace paddle {
 namespace framework {
@@ -41,12 +44,12 @@ class SSAGraphBuilderFactory {
         param_names_(param_names),
         local_scopes_(local_scopes),
         strategy_(strategy) {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
     nccl_ctxs_ = nullptr;
 #endif
   }
 
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
   void SetNCCLContextMap(platform::NCCLContextMap* nccl_ctxs) {
     nccl_ctxs_ = nccl_ctxs;
   }
@@ -60,8 +63,7 @@ class SSAGraphBuilderFactory {
   std::unordered_set<std::string> param_names_;
   std::vector<Scope*> local_scopes_;
   BuildStrategy strategy_;
-
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
   platform::NCCLContextMap* nccl_ctxs_;
 #endif
 };

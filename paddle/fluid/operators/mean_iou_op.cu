@@ -145,7 +145,7 @@ class MeanIoUCUDAOpKernel : public framework::OpKernel<T> {
     int block = PADDLE_CUDA_NUM_THREADS;
     int grid = (predictions->numel() + block - 1) / block;
     int cache_size = (num_classes * 2 + 1) * sizeof(int);
-    CountCUDAKernel<T><<<grid, block, cache_size, stream>>>(
+    hipLaunchKernelGGL((CountCUDAKernel<T><),dim3(grid), dim3(block), cache_size, stream>>>(
         num_classes, predictions->numel(), predictions_data, labels_data,
         out_wrong_data, out_correct_data);
     ctx.device_context().Wait();
