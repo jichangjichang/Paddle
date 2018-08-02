@@ -145,11 +145,11 @@ class PoolCUDNNGradOpKernel : public framework::OpKernel<T> {
 
     PoolingMode pooling_mode;
     if (pooling_type == "max") {
-      if (FLAGS_cudnn_deterministic) {
-        pooling_mode = PoolingMode::kMaximumDeterministic;
-      } else {
-        pooling_mode = PoolingMode::kMaximum;
-      }
+      //if (FLAGS_cudnn_deterministic) {
+      //  pooling_mode = PoolingMode::kMaximumDeterministic;
+      //} else {
+      pooling_mode = PoolingMode::kMaximum;
+      //}
     } else {
       pooling_mode = PoolingMode::kAverage;
     }
