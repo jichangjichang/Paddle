@@ -5,6 +5,7 @@ proto_library(framework_proto SRCS framework.proto)
 cc_library(ddim SRCS ddim.cc DEPS eigen3 boost)
 cc_test(ddim_test SRCS ddim_test.cc DEPS ddim)
 nv_test(dim_test SRCS dim_test.cu DEPS ddim)
+hip_test(dim_test SRCS dim_test.cu DEPS ddim)
 cc_library(data_type SRCS data_type.cc DEPS framework_proto ddim device_context)
 if(WITH_GPU)
   nv_library(tensor SRCS tensor.cc tensor_util.cu DEPS place memory data_type)
@@ -17,6 +18,8 @@ endif()
 cc_test(tensor_test SRCS tensor_test.cc DEPS tensor)
 if(WITH_GPU)
   nv_test(tensor_util_test SRCS tensor_util_test.cc tensor_util_test.cu DEPS tensor)
+elseif(WITH_AMD_GPU)
+  hip_test(tensor_util_test SRCS tensor_util_test.cc tensor_util_test.cu DEPS tensor)
 else()
   cc_test(tensor_util_test SRCS tensor_util_test.cc DEPS tensor)
 endif()
@@ -24,9 +27,10 @@ endif()
 cc_test(eigen_test SRCS eigen_test.cc DEPS tensor)
 
 nv_test(mixed_vector_test SRCS mixed_vector_test.cu DEPS place memory device_context init)
+hip_test(mixed_vector_test SRCS mixed_vector_test.cu DEPS place memory device_context init)
 cc_library(lod_tensor SRCS lod_tensor.cc DEPS ddim place tensor framework_proto recordio)
-hip_test(lod_tensor_test SRCS lod_tensor_test.cc DEPS lod_tensor memory)
 nv_test(lod_tensor_gpu_test SRCS lod_tensor_test.cu DEPS lod_tensor init)
+hip_test(lod_tensor_gpu_test SRCS lod_tensor_test.cu DEPS lod_tensor init)
 
 cc_library(reader SRCS reader.cc DEPS lod_tensor ddim)
 
@@ -40,6 +44,8 @@ cc_test(scope_test SRCS scope_test.cc DEPS scope)
 
 cc_library(data_device_transform SRCS data_device_transform.cc DEPS tensor)
 nv_test(data_device_transform_test SRCS data_device_transform_test.cu
+        DEPS operator op_registry init math_function)
+hip_test(data_device_transform_test SRCS data_device_transform_test.cu
         DEPS operator op_registry init math_function)
 
 if(WITH_GPU)
@@ -73,6 +79,7 @@ cc_library(proto_desc SRCS var_desc.cc op_desc.cc block_desc.cc program_desc.cc 
 
 cc_library(op_registry SRCS op_registry.cc DEPS op_proto_maker op_info operator glog proto_desc)
 hip_test(op_registry_test SRCS op_registry_test.cc DEPS op_registry)
+nv_test(op_registry_test SRCS op_registry_test.cc DEPS op_registry)
 
 py_proto_compile(framework_py_proto SRCS framework.proto)
 # Generate an empty __init__.py to make framework_py_proto as a valid python module.
