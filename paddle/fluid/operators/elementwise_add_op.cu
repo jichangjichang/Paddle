@@ -21,8 +21,10 @@ namespace plat = paddle::platform;
 
 REGISTER_OP_CUDA_KERNEL(
     elementwise_add, ops::ElementwiseAddKernel<plat::CUDADeviceContext, float>,
+    ops::ElementwiseAddKernel<plat::CUDADeviceContext, double>,
     ops::ElementwiseAddKernel<plat::CUDADeviceContext, int>);
 REGISTER_OP_CUDA_KERNEL(
     elementwise_add_grad,
     ops::ElementwiseAddGradKernel<plat::CUDADeviceContext, float>,
+    ops::ElementwiseAddGradKernel<plat::CUDADeviceContext, double>,
     ops::ElementwiseAddGradKernel<plat::CUDADeviceContext, int>);

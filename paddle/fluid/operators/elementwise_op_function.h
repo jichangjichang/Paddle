@@ -24,7 +24,7 @@ limitations under the License. */
 #include <thrust/iterator/iterator_adaptor.h>
 #include "paddle/fluid/platform/cuda_device_function.h"
 #include "paddle/fluid/platform/cuda_primitives.h"
-constexpr int ELEMWISE_MAX_BLOCK_DIM = 1024;
+constexpr int ELEMWISE_MAX_BLOCK_DIM = 256;
 #endif
 
 #include "paddle/fluid/operators/math/math_function.h"
