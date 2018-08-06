@@ -34,13 +34,13 @@ static __forceinline__ __device__ T CudaShuffleSync(unsigned mask, T val, int sr
 template <>
 static __forceinline__ __device__ double CudaShuffleDownSync(unsigned mask, double val,
                                                  int delta, int width) {
-  return 0.0f;
+  return (float)__shfl_down((float)val, delta, width);
 }
 
 template <>
 static __forceinline__ __device__ double CudaShuffleSync(unsigned mask, double val, int src_line,
                                              int width) {
-  return 0.0f;
+  return (float)__shfl((float)val, src_line, width);
 }
 
 
