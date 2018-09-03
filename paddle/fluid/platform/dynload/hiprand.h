@@ -17,6 +17,7 @@ limitations under the License. */
 #include <hiprand.h>
 #include <dlfcn.h>
 #include <mutex>
+#include <type_traits>
 #include "paddle/fluid/platform/dynload/dynamic_loader.h"
 
 namespace paddle {
@@ -25,18 +26,18 @@ namespace dynload {
 extern std::once_flag curand_dso_flag;
 extern void *curand_dso_handle;
 #ifdef PADDLE_USE_DSO
-#define DECLARE_DYNAMIC_LOAD_CURAND_WRAP(__name)                    \
-  struct DynLoad__##__name {                                        \
-    template <typename... Args>                                     \
-    hiprandStatus_t operator()(Args... args) {                       \
-      typedef hiprandStatus_t (*curandFunc)(Args...);                \
-      std::call_once(curand_dso_flag,                               \
-                     paddle::platform::dynload::GetCurandDsoHandle, \
-                     &curand_dso_handle);                           \
-      void *p_##__name = dlsym(curand_dso_handle, #__name);         \
-      return reinterpret_cast<curandFunc>(p_##__name)(args...);     \
-    }                                                               \
-  };                                                                \
+#define DECLARE_DYNAMIC_LOAD_CURAND_WRAP(__name)                             \
+  struct DynLoad__##__name {                                                 \
+    using FUNC_TYPE = decltype(&::__name);                                   \
+    template <typename... Args>                                              \
+    inline hiprandStatus_t operator()(Args... args) {                        \
+      std::call_once(curand_dso_flag, []() {                                 \
+        curand_dso_handle = paddle::platform::dynload::GetCurandDsoHandle(); \
+      });                                                                    \
+      void *p_##__name = dlsym(curand_dso_handle, #__name);                  \
+      return reinterpret_cast<FUNC_TYPE>(p_##__name)(args...);               \
+    }                                                                        \
+  };                                                                         \
   extern DynLoad__##__name __name
 #else
 #define DECLARE_DYNAMIC_LOAD_CURAND_WRAP(__name) \
@@ -60,6 +61,7 @@ extern void *curand_dso_handle;
 
 CURAND_RAND_ROUTINE_EACH(DECLARE_DYNAMIC_LOAD_CURAND_WRAP);
 
+#undef DECLARE_DYNAMIC_LOAD_CURAND_WRAP
 }  // namespace dynload
 }  // namespace platform
 }  // namespace paddle
