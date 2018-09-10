@@ -106,26 +106,25 @@ class GPUDropoutKernel : public framework::OpKernel<T> {
       int threads = 512;
       int grid = (x->numel() + threads - 1) / threads;
 
+#if defined(PADDLE_WITH_HIP)
       if(size > THURST_RANDOM_LIMIT_SIZE){
 	//large size, generate random buffer one-shot to improve performance
 	framework::Tensor random;
 	auto* random_data = random.mutable_data<float>(mask->dims(), context.GetPlace());
-#if defined(PADDLE_WITH_HIP)
 	hiprandGenerator_t generator;
 	PADDLE_ENFORCE(platform::dynload::hiprandCreateGenerator(&generator, HIPRAND_RNG_PSEUDO_DEFAULT));
 	PADDLE_ENFORCE(platform::dynload::hiprandSetPseudoRandomGeneratorSeed(generator, seed));
 	PADDLE_ENFORCE(platform::dynload::hiprandGenerateUniform(generator, random_data, size));
-#endif
-	context.device_context().Wait();
 	hipLaunchKernelGGL((RandomGenerator<T>), dim3(grid), dim3(threads), 0, context.cuda_device_context().stream(), 
 	    size, seed, dropout_prob, x_data, mask_data, y_data, random_data);
-#if defined(PADDLE_WITH_HIP)
 	PADDLE_ENFORCE(platform::dynload::hiprandDestroyGenerator(generator));
-#endif
       } else {
+#endif
 	hipLaunchKernelGGL((RandomGenerator<T>), dim3(grid), dim3(threads), 0, context.cuda_device_context().stream(), 
 	    size, seed, dropout_prob, x_data, mask_data, y_data);
+#if defined(PADDLE_WITH_HIP)
       }
+#endif
     } else {
       auto X = EigenMatrix<T>::Reshape(*x, 1);
       auto Y = EigenMatrix<T>::Reshape(*y, 1);
