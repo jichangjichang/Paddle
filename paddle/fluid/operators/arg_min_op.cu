@@ -24,4 +24,8 @@ REGISTER_OP_CUDA_KERNEL(
     paddle::operators::ArgMinKernel<paddle::platform::CUDADeviceContext,
                                     int32_t>,
     paddle::operators::ArgMinKernel<paddle::platform::CUDADeviceContext,
-                                    size_t>);
+                                    int16_t>,
+    paddle::operators::ArgMinKernel<paddle::platform::CUDADeviceContext,
+                                    size_t>,
+    paddle::operators::ArgMinKernel<paddle::platform::CUDADeviceContext,
+                                    uint8_t>);
