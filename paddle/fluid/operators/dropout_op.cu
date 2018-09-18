@@ -111,13 +111,11 @@ class GPUDropoutKernel : public framework::OpKernel<T> {
 	//large size, generate random buffer one-shot to improve performance
 	framework::Tensor random;
 	auto* random_data = random.mutable_data<float>(mask->dims(), context.GetPlace());
-	hiprandGenerator_t generator;
-	PADDLE_ENFORCE(platform::dynload::hiprandCreateGenerator(&generator, HIPRAND_RNG_PSEUDO_DEFAULT));
+	hiprandGenerator_t generator = context.cuda_device_context().rand_generator();
 	PADDLE_ENFORCE(platform::dynload::hiprandSetPseudoRandomGeneratorSeed(generator, seed));
 	PADDLE_ENFORCE(platform::dynload::hiprandGenerateUniform(generator, random_data, size));
 	hipLaunchKernelGGL((RandomGenerator<T>), dim3(grid), dim3(threads), 0, context.cuda_device_context().stream(), 
 	    size, seed, dropout_prob, x_data, mask_data, y_data, random_data);
-	PADDLE_ENFORCE(platform::dynload::hiprandDestroyGenerator(generator));
       } else {
 #endif
 	hipLaunchKernelGGL((RandomGenerator<T>), dim3(grid), dim3(threads), 0, context.cuda_device_context().stream(), 

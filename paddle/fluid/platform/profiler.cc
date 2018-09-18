@@ -147,14 +147,19 @@ double Event::CudaElapsedMs(const Event& e) const {
   PADDLE_ENFORCE(cudaEventSynchronize(e.event()));
   float ms;
   PADDLE_ENFORCE(cudaEventElapsedTime(&ms, event_, e.event()));
+  PADDLE_ENFORCE(cudaEventDestroy(event_));
+  PADDLE_ENFORCE(cudaEventDestroy(e.event()));
   return ms;
 #elif defined(PADDLE_WITH_HIP)
+  if (!has_cuda_) return 0.0;
   PADDLE_ENFORCE(e.has_cuda() && has_cuda());
   PADDLE_ENFORCE(e.device() == device());
   PADDLE_ENFORCE(hipEventSynchronize(event_));
   PADDLE_ENFORCE(hipEventSynchronize(e.event()));
   float ms;
   PADDLE_ENFORCE(hipEventElapsedTime(&ms, event_, e.event()));
+  PADDLE_ENFORCE(hipEventDestroy(event_));
+  PADDLE_ENFORCE(hipEventDestroy(e.event()));
   return ms;
 #else
   PADDLE_THROW("CUDA is not enabled");
