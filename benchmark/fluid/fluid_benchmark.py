@@ -337,7 +337,8 @@ def main():
         if args.gpus > 1 and os.getenv("PADDLE_TRAINING_ROLE") == "TRAINER":
             train_args.extend([nccl_id_var, num_trainers, trainer_id])
             train_parallel(*train_args)
-        train(*train_args)
+        else:
+            train(*train_args)
         exit(0)
 
     # for other update methods, use default programs
