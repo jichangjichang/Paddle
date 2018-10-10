@@ -16,7 +16,7 @@ limitations under the License. */
 
 #include "hip/hip_fp16.h"
 #include "hip/hip_runtime.h"
-#include "paddle/fluid/platform/float16.h"
+#include <type_traits>
 
 namespace paddle {
 namespace platform {
@@ -33,27 +33,6 @@ static __forceinline__ __device__ float CudaShuffleSync(unsigned mask, float val
   return __shfl(val, src_line, width);
 }
 
-static __forceinline__ __device__ int CudaShuffleDownSync(unsigned mask, int val,
-int delta, int width) {
-return __shfl_down(val, delta, width);
-}
-
-static __forceinline__ __device__ int CudaShuffleSync(unsigned mask, int val, int src_line,
-int width) {
-return __shfl(val, src_line, width);
-}
-
-static __forceinline__ __device__ double CudaShuffleDownSync(unsigned mask, double val,
-                                                 int delta, int width) {
-  return (float)__shfl_down((float)val, delta, width);
-}
-
-static __forceinline__ __device__ double CudaShuffleSync(unsigned mask, double val, int src_line,
-                                             int width) {
-  return (float)__shfl((float)val, src_line, width);
-}
-
-
 #if 0
 template <typename T>
 HOSTDEVICE T Infinity() {
@@ -62,7 +41,8 @@ HOSTDEVICE T Infinity() {
 #endif
 
 template <typename T>
-__device__ T reduceSum(T val, int tid, int len) {
+typename std::enable_if<!std::is_integral<T>::value, T>::type
+__device__ reduceSum(T val_in, int tid, int len) {
   // NOTE(zcd): The warp size should be taken from the
   // parameters of the GPU but not specified as 32 simply.
   // To make the reduceSum more efficiently,
@@ -70,7 +50,44 @@ __device__ T reduceSum(T val, int tid, int len) {
   // is 32 which may be different for different GPU,
   // but most card's warp size is 32.
   const int warpSize = 32;
-  __shared__ T shm[warpSize];
+  __shared__ float shm[warpSize];
+  float val = val_in;
+  unsigned mask = 0u;
+  CREATE_SHFL_MASK(mask, tid < len);
+
+  for (int offset = warpSize / 2; offset > 0; offset /= 2)
+    val += platform::CudaShuffleDownSync(mask, val, offset);
+
+  if (tid < warpSize) shm[tid] = 0;
+  __syncthreads();
+
+  if (tid % warpSize == 0) {
+    shm[tid / warpSize] = val;
+  }
+  __syncthreads();
+
+  CREATE_SHFL_MASK(mask, tid < warpSize);
+
+  if (tid < warpSize) {
+    val = shm[tid];
+    for (int offset = warpSize / 2; offset > 0; offset /= 2)
+      val += platform::CudaShuffleDownSync(mask, val, offset);
+  }
+  return val;
+}
+
+template <typename T>
+typename std::enable_if<std::is_integral<T>::value, T>::type
+__device__ reduceSum(T val_in, int tid, int len) {
+  // NOTE(zcd): The warp size should be taken from the
+  // parameters of the GPU but not specified as 32 simply.
+  // To make the reduceSum more efficiently,
+  // I use Warp-Level Parallelism and assume the Warp size
+  // is 32 which may be different for different GPU,
+  // but most card's warp size is 32.
+  const int warpSize = 32;
+  __shared__ int shm[warpSize];
+  int val = val_in;
   unsigned mask = 0u;
   CREATE_SHFL_MASK(mask, tid < len);
 
