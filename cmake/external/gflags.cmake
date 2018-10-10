@@ -28,7 +28,7 @@ INCLUDE_DIRECTORIES(${GFLAGS_INCLUDE_DIR})
 ExternalProject_Add(
     extern_gflags
     ${EXTERNAL_PROJECT_LOG_ARGS}
-    GIT_REPOSITORY  "https://github.com/gflags/gflags.git"
+    GIT_REPOSITORY  "http://DC-SMC-07/gitblit/r/gflags.git"
     GIT_TAG         77592648e3f3be87d6c7123eb81cbad75f9aef5a
     PREFIX          ${GFLAGS_SOURCES_DIR}
     UPDATE_COMMAND  ""

@@ -19,8 +19,8 @@ namespace ops = paddle::operators;
 namespace plat = paddle::platform;
 REGISTER_OP_CUDA_KERNEL(
     softmax, ops::SoftmaxKernel<plat::CUDADeviceContext, float>,
-    ops::SoftmaxKernel<plat::CUDADeviceContext, double>,
-    ops::SoftmaxKernel<plat::CUDADeviceContext, plat::float16>);
+    ops::SoftmaxKernel<plat::CUDADeviceContext, double>);
+//    ops::SoftmaxKernel<plat::CUDADeviceContext, paddle::platform::float16>); miopen
 REGISTER_OP_CUDA_KERNEL(
     softmax_grad, ops::SoftmaxGradKernel<plat::CUDADeviceContext, float>,
     ops::SoftmaxGradKernel<plat::CUDADeviceContext, double>);

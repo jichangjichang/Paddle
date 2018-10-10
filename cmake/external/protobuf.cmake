@@ -188,7 +188,7 @@ FUNCTION(build_protobuf TARGET_NAME BUILD_FOR_HOST)
         SET(OPTIONAL_CACHE_ARGS "-DZLIB_ROOT:STRING=${ZLIB_ROOT}")
     ENDIF()
 
-    SET(PROTOBUF_REPO "https://github.com/google/protobuf.git")
+    SET(PROTOBUF_REPO "http://DC-SMC-07/gitblit/r/protobuf.git")
     SET(PROTOBUF_TAG "9f75c5aa851cd877fb0d93ccc31b8567a6706546")
     IF(MOBILE_INFERENCE)
         # The reason why the official version is not used is described in

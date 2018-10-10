@@ -27,7 +27,7 @@ SET(CARES_INCLUDE_DIR "${CARES_INSTALL_DIR}/include/" CACHE PATH "cares include 
 
 ExternalProject_Add(
     extern_cares
-    GIT_REPOSITORY "https://github.com/c-ares/c-ares.git"
+    GIT_REPOSITORY "http://DC-SMC-07/gitblit/r/c-ares.git"
     GIT_TAG "cares-1_13_0"
     PREFIX          ${CARES_SOURCES_DIR}
     UPDATE_COMMAND  ""

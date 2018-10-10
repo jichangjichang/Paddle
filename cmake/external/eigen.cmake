@@ -8,7 +8,7 @@ if(WITH_AMD_GPU)
     ExternalProject_Add(
         extern_eigen3
         ${EXTERNAL_PROJECT_LOG_ARGS}
-        GIT_REPOSITORY  "https://github.com/sabreshao/hipeigen.git"
+	GIT_REPOSITORY  "http://DC-SMC-07/gitblit/r/hipeigen.git"
         GIT_TAG         7cb2b6e5a4b4a1efe658abb215cd866c6fb2275e
         PREFIX          ${EIGEN_SOURCE_DIR}
         UPDATE_COMMAND  ""

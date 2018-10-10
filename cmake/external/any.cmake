@@ -7,7 +7,7 @@ INCLUDE_DIRECTORIES(${ANY_SOURCE_DIR}/src/extern_lib_any)
 ExternalProject_Add(
     extern_lib_any
     ${EXTERNAL_PROJECT_LOG_ARGS}
-    GIT_REPOSITORY  "https://github.com/PaddlePaddle/any.git"
+    GIT_REPOSITORY  "http://DC-SMC-07/gitblit/r/any.git"
     GIT_TAG         "15595d8324be9e8a9a80d9ae442fdd12bd66df5d"
     PREFIX          ${ANY_SOURCE_DIR}
     UPDATE_COMMAND  ""

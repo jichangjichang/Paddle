@@ -31,7 +31,7 @@ IF(ANDROID AND ${CMAKE_SYSTEM_VERSION} VERSION_LESS "21")
   SET(GLOG_REPOSITORY "https://github.com/Xreki/glog.git")
   SET(GLOG_TAG "8a547150548b284382ccb6582408e9140ff2bea8")
 ELSE()
-  SET(GLOG_REPOSITORY "https://github.com/google/glog.git")
+  SET(GLOG_REPOSITORY "http://DC-SMC-07/gitblit/r/glog.git")
   SET(GLOG_TAG "v0.3.5")
 ENDIF()
 

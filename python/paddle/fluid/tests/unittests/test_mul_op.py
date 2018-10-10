@@ -18,7 +18,7 @@ import unittest
 import numpy as np
 import paddle.fluid.core as core
 from op_test import OpTest
-
+import pdb
 
 class TestMulOp(OpTest):
     def setUp(self):
@@ -87,6 +87,7 @@ class TestFP16MulOp1(OpTest):
         if core.is_compiled_with_cuda():
             place = core.CUDAPlace(0)
             if core.is_float16_supported(place):
+                pdb.set_trace()
                 self.check_output_with_place(place, atol=1e-1)
 
 

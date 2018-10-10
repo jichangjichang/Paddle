@@ -25,7 +25,7 @@ include_directories(${PYBIND_SOURCE_DIR}/src/extern_pybind/include)
 ExternalProject_Add(
         extern_pybind
         ${EXTERNAL_PROJECT_LOG_ARGS}
-        GIT_REPOSITORY  "https://github.com/pybind/pybind11.git"
+        GIT_REPOSITORY  "http://DC-SMC-07/gitblit/r/pybind11.git"
         GIT_TAG         "v2.1.1"
         PREFIX          ${PYBIND_SOURCE_DIR}
         UPDATE_COMMAND  ""
