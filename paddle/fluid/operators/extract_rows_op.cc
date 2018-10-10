@@ -56,7 +56,7 @@ class ExtractRowsOp : public framework::OperatorBase {
     auto dst_ptr = out->mutable_data<int64_t>(out_dim, in.place());
 
     if (paddle::platform::is_gpu_place(in.place())) {
-#ifdef PADDLE_WITH_CUDA
+#if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
       platform::DeviceContextPool &pool =
           platform::DeviceContextPool::Instance();
       auto *dev_ctx = pool.Get(in.place());
