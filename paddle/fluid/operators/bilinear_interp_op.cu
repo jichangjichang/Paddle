@@ -139,8 +139,8 @@ class BilinearInterpOpCUDAKernel : public framework::OpKernel<T> {
 
       hipLaunchKernelGGL((KeBilinearInterpFw<T>),
           dim3(blocks), dim3(1024), 0, ctx.cuda_device_context().stream(),
-          input, in_h, in_w, batch_size, in_chw, output, out_h, out_w,
-          batch_size, out_chw, channels, ratio_h, ratio_w);
+          input, (const size_t)in_h, (const size_t)in_w, (const size_t)batch_size, (const size_t)in_chw, output, (const size_t)out_h, (const size_t)out_w,
+          (const size_t)batch_size, (const size_t)out_chw, (const size_t)channels, (const T)ratio_h, (const T)ratio_w);
     }
   }
 };
@@ -192,8 +192,8 @@ class BilinearInterpGradOpCUDAKernel : public framework::OpKernel<T> {
 
       hipLaunchKernelGGL((KeBilinearInterpBw<T>),
           dim3(blocks), dim3(1024), 0, ctx.cuda_device_context().stream(),
-          d_input, in_h, in_w, batch_size, in_chw, d_output, out_h, out_w,
-          batch_size, out_chw, channels, ratio_h, ratio_w);
+          d_input, (const size_t)in_h, (const size_t)in_w, (const size_t)batch_size, (const size_t)in_chw, d_output, (const size_t)out_h, (const size_t)out_w,
+          (const size_t)batch_size, (const size_t)out_chw, (const size_t)channels, (const T)ratio_h, (const T)ratio_w);
     }
   }
 };
