@@ -70,7 +70,6 @@ struct CUBlas<double> {
   }
 };
 
-#if 0
 template <>
 struct CUBlas<platform::float16> {
   using float16 = platform::float16;
@@ -80,13 +79,16 @@ struct CUBlas<platform::float16> {
                    const float16 *alpha, const float16 *A, int lda,
                    const float16 *B, int ldb, const float16 *beta, float16 *C,
                    int ldc) {
+    float16 *A_noconst= const_cast<float16 *>(A);
+    float16 *B_noconst= const_cast<float16 *>(B);
+    float16 *C_noconst= const_cast<float16 *>(C);
     PADDLE_ENFORCE(
         platform::dynload::hipblasHgemm(handle, transa, transb, m, n, k,
                                        reinterpret_cast<const hipblasHalf *>(alpha),
-                                       reinterpret_cast<const hipblasHalf *>(A), lda,
-                                       reinterpret_cast<const hipblasHalf *>(B), ldb,
+                                       reinterpret_cast<hipblasHalf *>(A_noconst), lda,
+                                       reinterpret_cast<hipblasHalf *>(B_noconst), ldb,
                                        reinterpret_cast<const hipblasHalf *>(beta),
-                                       reinterpret_cast<const hipblasHalf *>(C), ldc));
+                                       reinterpret_cast<hipblasHalf *>(C_noconst), ldc));
   }
 
   static void GEMM_BATCH(hipblasHandle_t handle, hipblasOperation_t transa,
@@ -110,7 +112,6 @@ struct CUBlas<platform::float16> {
 #endif
   }
 };
-#endif
 
 template <>
 template <typename T>
@@ -131,7 +132,6 @@ void Blas<platform::CUDADeviceContext>::GEMM(CBLAS_TRANSPOSE transA,
                   B, ldb, A, lda, &beta, C, N);
 }
 
-#if 0
 template <>
 template <>
 inline void Blas<platform::CUDADeviceContext>::GEMM(
@@ -147,16 +147,20 @@ inline void Blas<platform::CUDADeviceContext>::GEMM(
       (transA == CblasNoTrans) ? HIPBLAS_OP_N : HIPBLAS_OP_T;
   hipblasOperation_t cuTransB =
       (transB == CblasNoTrans) ? HIPBLAS_OP_N : HIPBLAS_OP_T;
+  
+  //float h_alpha = static_cast<float>(alpha);
+  //float h_beta = static_cast<float>(beta);
+  //hipblasGemmAlgo_t algo= HIPBLAS_GEMM_DEFAULT;
 
-  float h_alpha = static_cast<float>(alpha);
-  float h_beta = static_cast<float>(beta);
-
+  //PADDLE_ENFORCE(platform::dynload::hipblasGemmEx(
+  //    context_.hipblas_handle(), cuTransB, cuTransA, N, M, K, &h_alpha, B,
+  //    HIPBLAS_R_16F, ldb, A, HIPBLAS_R_16F, lda, &h_beta, C, HIPBLAS_R_16F, N,
+  //    HIPBLAS_R_32F, algo));
   // CUDA 7.5 does not support hipblasGemmEx, hence we fall back to use hgemm
   CUBlas<platform::float16>::GEMM(context_.hipblas_handle(), cuTransB, cuTransA,
-                                  N, M, K, &h_alpha, B, ldb, A, lda,
-                                  &h_beta, C, N);
+                                  N, M, K, &alpha, B, ldb, A, lda,
+                                  &beta, C, N);
 }
-#endif
 
 template <>
 template <typename T>
