@@ -19,6 +19,7 @@ import numpy as np
 import paddle.fluid.core as core
 from op_test import OpTest
 
+
 class TestMulOp(OpTest):
     def setUp(self):
         self.op_type = "mul"
