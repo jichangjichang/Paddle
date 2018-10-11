@@ -28,7 +28,7 @@ set(SNAPPY_LIBRARIES "${SNAPPY_INSTALL_DIR}/lib/libsnappy.a")
 
 ExternalProject_Add(
     extern_snappy
-    GIT_REPOSITORY "http://DC-SMC-07/gitblit/r/snappy"
+    GIT_REPOSITORY "https://github.com/google/snappy"
     GIT_TAG "1.1.7"
     PREFIX          ${SNAPPY_SOURCES_DIR}
     UPDATE_COMMAND  ""

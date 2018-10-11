@@ -43,7 +43,7 @@ IF(WITH_TESTING)
         extern_gtest
         ${EXTERNAL_PROJECT_LOG_ARGS}
         DEPENDS         ${GTEST_DEPENDS}
-        GIT_REPOSITORY  "http://DC-SMC-07/gitblit/r/googletest.git"
+        GIT_REPOSITORY  "https://github.com/google/googletest.git"
         GIT_TAG         "release-1.8.0"
         PREFIX          ${GTEST_SOURCES_DIR}
         UPDATE_COMMAND  ""

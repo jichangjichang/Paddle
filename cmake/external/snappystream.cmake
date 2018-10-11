@@ -28,7 +28,7 @@ set(SNAPPYSTREAM_LIBRARIES "${SNAPPYSTREAM_INSTALL_DIR}/lib/libsnappystream.a")
 
 ExternalProject_Add(
         extern_snappystream
-        GIT_REPOSITORY "http://DC-SMC-07/gitblit/r/snappystream.git"
+        GIT_REPOSITORY "https://github.com/hoxnox/snappystream.git"
         GIT_TAG "0.2.8"
         PREFIX          ${SNAPPYSTREAM_SOURCES_DIR}
         UPDATE_COMMAND  ""

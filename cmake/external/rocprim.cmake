@@ -10,7 +10,7 @@ SET(ROCPRIM_INCLUDE_DIR ${ROCPRIM_INSTALL_DIR}/include)
 
 ExternalProject_Add(
     extern_rocprim
-    GIT_REPOSITORY "http://dc-smc-07/gitblit/r/rocPRIM.git"
+    GIT_REPOSITORY "https://github.com/ROCmSoftwarePlatform/rocPRIM.git"
     GIT_TAG        5bd41b96ab8d8343330fb2c3e1b96775bde3b3fc 
     PREFIX         ${ROCPRIM_SOURCE_DIR}
     UPDATE_COMMAND  ""

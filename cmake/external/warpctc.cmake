@@ -38,7 +38,7 @@ ENDIF()
 ExternalProject_Add(
     extern_warpctc
     ${EXTERNAL_PROJECT_LOG_ARGS}
-    GIT_REPOSITORY  "http://DC-SMC-07/gitblit/r/warp-ctc.git"
+    GIT_REPOSITORY  "https://github.com/dzhwinter/warp-ctc.git"
     PREFIX          ${WARPCTC_SOURCES_DIR}
     UPDATE_COMMAND  ""
     CMAKE_ARGS      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}

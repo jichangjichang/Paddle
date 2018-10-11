@@ -23,12 +23,14 @@ namespace platform {
 
 #define CREATE_SHFL_MASK(mask, predicate) mask = 0u;
 
-static __forceinline__ __device__ float CudaShuffleDownSync(unsigned mask, float val,
+template <typename T>
+static __forceinline__ __device__ T CudaShuffleDownSync(unsigned mask, T val,
                                                  int delta, int width = 32) {
   return __shfl_down(val, delta, width);
 }
 
-static __forceinline__ __device__ float CudaShuffleSync(unsigned mask, float val, int src_line,
+template <typename T>
+static __forceinline__ __device__ T CudaShuffleSync(unsigned mask, T val, int src_line,
                                              int width = 32) {
   return __shfl(val, src_line, width);
 }
