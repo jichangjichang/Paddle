@@ -47,6 +47,23 @@ limitations under the License. */
 #endif  // __APPLE__
 #endif  // PADDLE_WITH_CUDA
 
+#ifdef PADDLE_WITH_HIP
+
+#include "paddle/fluid/platform/dynload/hipblas.h"
+#include "paddle/fluid/platform/dynload/miopen.h"
+#include "paddle/fluid/platform/dynload/hiprand.h"
+#include "paddle/fluid/platform/dynload/rccl.h"
+
+#include <hip/hip_runtime_api.h>
+#include <hipblas.h>
+#include <miopen/miopen.h>
+#include <hiprand.h>
+#include <rccl.h>
+#include <thrust/system/cuda/error.h>
+#include <thrust/system_error.h>
+
+#endif
+
 namespace paddle {
 namespace platform {
 
@@ -232,6 +249,85 @@ inline void throw_on_error(ncclResult_t stat, const std::string& msg) {
 }
 #endif  // __APPLE__ and windows
 #endif  // PADDLE_WITH_CUDA
+
+#ifdef PADDLE_WITH_HIP
+inline bool is_error(hipError_t e) { return e != hipSuccess; }
+
+inline void throw_on_error(hipError_t e, const std::string& msg) {
+#ifndef REPLACE_ENFORCE_GLOG
+  throw thrust::system_error(e, thrust::cuda_category(), msg);
+#else
+  LOG(FATAL) << msg;
+#endif
+}
+
+inline bool is_error(hiprandStatus_t stat) {
+  return stat != HIPRAND_STATUS_SUCCESS;
+}
+
+inline void throw_on_error(hiprandStatus_t stat, const std::string& msg) {
+#ifndef REPLACE_ENFORCE_GLOG
+  throw thrust::system_error(hipErrorLaunchFailure,, thrust::cuda_category(),
+                             msg);
+#else
+  LOG(FATAL) << msg;
+#endif
+}
+
+inline bool is_error(miopenStatus_t stat) {
+  return stat != miopenStatusSuccess;
+}
+
+inline void throw_on_error(miopenStatus_t stat, const std::string& msg) {
+#ifndef REPLACE_ENFORCE_GLOG
+  throw std::runtime_error(platform::dynload::miopenGetErrorString(stat) + msg);
+#else
+  LOG(FATAL) << platform::dynload::miopenGetErrorString(stat) << msg;
+#endif
+}
+
+inline bool is_error(hipblasStatus_t stat) {
+  return stat != HIPBLAS_STATUS_SUCCESS;
+}
+
+inline void throw_on_error(hipblasStatus_t stat, const std::string& msg) {
+  std::string err;
+  if (stat == HIPBLAS_STATUS_NOT_INITIALIZED) {
+    err = "HIPBLAS: not initialized, ";
+  } else if (stat == HIPBLAS_STATUS_ALLOC_FAILED) {
+    err = "HIPBLAS: alloc failed, ";
+  } else if (stat == HIPBLAS_STATUS_INVALID_VALUE) {
+    err = "HIPBLAS: invalid value, ";
+  } else if (stat == HIPBLAS_STATUS_MAPPING_ERROR) {
+    err = "HIPBLAS: mapping error, ";
+  } else if (stat == HIPBLAS_STATUS_EXECUTION_FAILED) {
+    err = "HIPBLAS: execution failed, ";
+  } else if (stat == HIPBLAS_STATUS_INTERNAL_ERROR) {
+    err = "HIPBLAS: internal error, ";
+  } else if (stat == HIPBLAS_STATUS_NOT_SUPPORTED) {
+    err = "HIPBLAS: not supported, ";
+  }
+#ifndef REPLACE_ENFORCE_GLOG
+  throw std::runtime_error(err + msg);
+#else
+  LOG(FATAL) << err << msg;
+#endif
+}
+
+#if !defined(__APPLE__) && !defined(_WIN32)
+inline bool is_error(rcclResult_t rccl_result) {
+  return rccl_result != rcclSuccess;
+}
+
+inline void throw_on_error(rcclResult_t stat, const std::string& msg) {
+#ifndef REPLACE_ENFORCE_GLOG
+  throw std::runtime_error(platform::dynload::rcclGetErrorString(stat) + msg);
+#else
+  LOG(FATAL) << platform::dynload::rcclGetErrorString(stat) << msg;
+#endif
+}
+#endif  // __APPLE__ and windows
+#endif  // PADDLE_WITH_HIP
 
 #define PADDLE_THROW(...)                  \
   throw ::paddle::platform::EnforceNotMet( \
