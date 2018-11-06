@@ -47,6 +47,69 @@ struct Random<platform::CUDADeviceContext> {
 };
 #endif
 
+#ifdef PADDLE_WITH_HIP
+/*HIP doesn't support recusive call.
+  Use iterative call instead */
+template <typename T>
+HOSTDEVICE inline void StridedMemcpy(const T* x, const size_t* x_dims, T* out,
+                                     const size_t* out_dims, int i_input, int rank,
+                                     size_t prod_x_remain,
+                                     size_t prod_out_remain,
+                                     const size_t* offsets) {
+struct StackStruct{
+  const T* x;
+  T* out;
+  int i;
+  size_t prod_x_remain;
+  size_t prod_out_remain;
+  int j;
+};
+
+  StackStruct s[9];
+  int s_idx = 0;
+  s[s_idx].x = x;
+  s[s_idx].out = out;
+  s[s_idx].i = i_input;
+  s[s_idx].prod_x_remain = prod_x_remain;
+  s[s_idx].prod_out_remain = prod_out_remain;
+  s[s_idx].j = 0;
+
+  while(s_idx >= 0){
+    int i = s[s_idx].i;
+    size_t x_stride = s[s_idx].prod_x_remain / x_dims[i];
+    size_t out_stride = s[s_idx].prod_out_remain / out_dims[i];
+
+    if ( i == rank - 1) {
+      PADDLE_ASSERT( x_stride == 1 && out_stride == 1);
+      s[s_idx].x += offsets[i];
+      for (size_t j = 0; j < out_dims[i]; ++j) {
+	*s[s_idx].out++ = *s[s_idx].x++;
+      }
+      s_idx--;
+      continue;
+    } else{
+      if(s[s_idx].j == 0){
+	s[s_idx].x += offsets[i] * x_stride;
+      }else if(s[s_idx].j > 0 && s[s_idx].j < out_dims[i] ){
+	s[s_idx].x += x_stride;
+	s[s_idx].out += out_stride;
+      }else{
+	s_idx--;
+	continue;
+      }
+      s[s_idx].j++;
+      s[s_idx+1].x = s[s_idx].x;
+      s[s_idx+1].out = s[s_idx].out;
+      s[s_idx+1].i = s[s_idx].i+1;
+      s[s_idx+1].prod_x_remain = x_stride;
+      s[s_idx+1].prod_out_remain = out_stride;
+      s[s_idx+1].j = 0;
+      s_idx++;
+      continue;
+    }
+  }
+}
+#else
 template <typename T>
 HOSTDEVICE inline void StridedMemcpy(const T* x, const size_t* x_dims, T* out,
                                      const size_t* out_dims, int i, int rank,
@@ -75,7 +138,7 @@ HOSTDEVICE inline void StridedMemcpy(const T* x, const size_t* x_dims, T* out,
     }
   }
 }
-
+#endif
 template <typename DeviceContext, typename T>
 struct RandomCropFunctor {
   const T* x_;
@@ -119,7 +182,6 @@ struct RandomCropFunctor {
   }
 
   HOSTDEVICE void operator()(size_t ins_idx) {
-#if 0
     typename Random<DeviceContext>::Engine engine(seed_);
     engine.discard(ins_idx * (rank_ - num_batchsize_dims_));
     size_t offsets[9];
@@ -136,7 +198,6 @@ struct RandomCropFunctor {
                      out_dims_ + num_batchsize_dims_, 0,
                      rank_ - num_batchsize_dims_, prod_x_ins_dims_,
                      prod_out_ins_dims_, offsets);
-#endif
   }
 };
 
