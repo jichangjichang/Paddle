@@ -399,7 +399,7 @@ void Executor::RunPreparedContext(ExecutorPrepareContext* ctx, Scope* scope,
   // in WhileGradOp.
   if (max_memory_size >= 0 && !keep_kids) {
     ctx->ResetReferenceCount();
-#ifdef PADDLE_WITH_CUDA
+#if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
     if (platform::is_gpu_place(place_)) {
       gc.reset(new DefaultStreamGarbageCollector<Tensor>(
           boost::get<platform::CUDAPlace>(place_), max_memory_size));
@@ -407,7 +407,7 @@ void Executor::RunPreparedContext(ExecutorPrepareContext* ctx, Scope* scope,
 #endif
       gc.reset(new CPUGarbageCollector<Tensor>(
           boost::get<platform::CPUPlace>(place_), max_memory_size));
-#ifdef PADDLE_WITH_CUDA
+#if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
     }
 #endif
   }
