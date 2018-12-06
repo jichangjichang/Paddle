@@ -111,7 +111,7 @@ void AllReduceOpHandle::RunImpl() {
 #endif
       }
       this->RunAndRecordEvent([&] {
-        //platform::NCCLGroupGuard guard;
+        platform::NCCLGroupGuard guard;
         for (auto &call : all_reduce_calls) {
           call();
         }
