@@ -341,6 +341,13 @@ class CUDADeviceContext : public DeviceContext {
     PADDLE_ENFORCE(hipEventRecord(ev, stream_));
   }
 
+  template <typename Callback>
+  void AddStreamCallback(Callback&& callback) const {
+  }
+
+  void WaitStreamCallback() const {
+  }
+
  private:
   CUDAPlace place_;
 
