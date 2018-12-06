@@ -14,8 +14,8 @@ limitations under the License. */
 
 #pragma once
 
-#if !defined(__NVCC__) || !defined(__HIPCC__)
-#warning device_ptr_cast must be include by .cu file
+#if !defined(__NVCC__) && !defined(__HIPCC__)
+#error device_ptr_cast must be include by .cu file
 #endif
 
 #include <type_traits>  // For std::remove_pointer and std::is_pointer.
