@@ -95,7 +95,7 @@ class CPUGarbageCollector : public GarbageCollector<T> {
   }
 };
 
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
 template <typename T>
 class DefaultStreamGarbageCollector : public GarbageCollector<T> {
  public:
@@ -103,7 +103,11 @@ class DefaultStreamGarbageCollector : public GarbageCollector<T> {
                                 size_t max_memory_size)
       : GarbageCollector<T>(place, max_memory_size) {}
 
+#ifdef PADDLE_WITH_CUDA
   cudaStream_t stream() const {
+#else
+  hipStream_t stream() const {
+#endif
     return static_cast<const platform::CUDADeviceContext *>(this->dev_ctx_)
         ->stream();
   }
@@ -127,25 +131,44 @@ class StreamGarbageCollector : public GarbageCollector<T> {
   StreamGarbageCollector(const platform::CUDAPlace &place,
                          size_t max_memory_size)
       : GarbageCollector<T>(place, max_memory_size) {
+#ifdef PADDLE_WITH_CUDA
     PADDLE_ENFORCE(cudaSetDevice(place.device));
     PADDLE_ENFORCE(cudaStreamCreate(&stream_));
+#else
+    PADDLE_ENFORCE(hipSetDevice(place.device));
+    PADDLE_ENFORCE(hipStreamCreate(&stream_));
+#endif
     callback_manager_.reset(new platform::StreamCallbackManager(stream_));
   }
 
   ~StreamGarbageCollector() {
     auto place = boost::get<platform::CUDAPlace>(this->dev_ctx_->GetPlace());
+#ifdef PADDLE_WITH_CUDA
     PADDLE_ENFORCE(cudaSetDevice(place.device));
     PADDLE_ENFORCE(cudaStreamSynchronize(stream_));
     PADDLE_ENFORCE(cudaStreamDestroy(stream_));
+#else
+    PADDLE_ENFORCE(hipSetDevice(place.device));
+    PADDLE_ENFORCE(hipStreamSynchronize(stream_));
+    PADDLE_ENFORCE(hipStreamDestroy(stream_));
+#endif
   }
 
   void Wait() const override {
+#ifdef PADDLE_WITH_CUDA
     PADDLE_ENFORCE(cudaStreamSynchronize(stream_));
+#else
+    PADDLE_ENFORCE(hipStreamSynchronize(stream_));
+#endif
     std::lock_guard<std::mutex> guard(this->mutex_);
     callback_manager_->Wait();
   }
 
+#ifdef PADDLE_WITH_CUDA
   cudaStream_t stream() const { return stream_; }
+#else
+  hipStream_t stream() const { return stream_; }
+#endif
 
  protected:
   void ClearCallback(const std::function<void()> &callback) override {
@@ -154,7 +177,11 @@ class StreamGarbageCollector : public GarbageCollector<T> {
   }
 
  private:
+#ifdef PADDLE_WITH_CUDA
   cudaStream_t stream_;
+#else
+  hipStream_t stream_;
+#endif
   std::unique_ptr<platform::StreamCallbackManager> callback_manager_;
 };
 #endif

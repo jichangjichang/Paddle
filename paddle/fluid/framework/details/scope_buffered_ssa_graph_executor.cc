@@ -18,7 +18,7 @@
 #include <vector>
 #include "paddle/fluid/framework/executor.h"
 #include "paddle/fluid/platform/profiler.h"
-#ifdef PADDLE_WITH_CUDA
+#if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
 #include "paddle/fluid/framework/details/reference_count_op_handle.h"
 #endif
 
@@ -69,7 +69,7 @@ FeedFetchList ScopeBufferedSSAGraphExecutor::Run(
   platform::RecordEvent e("ScopeBufferedSSAGraphExecutorAfterRun", nullptr);
   drop_scope_counter_ += 1;
 
-#ifdef PADDLE_WITH_CUDA
+#if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
   const std::string gc_name = "garbage_collector";
   DeviceGarbageCollectorMap *gc =
       Graph().Has(gc_name) ? &(Graph().Get<DeviceGarbageCollectorMap>(gc_name))
@@ -82,7 +82,7 @@ FeedFetchList ScopeBufferedSSAGraphExecutor::Run(
     // Wait All computational streams
     for (auto p : places_) {
       platform::DeviceContextPool::Instance().Get(p)->Wait();
-#ifdef PADDLE_WITH_CUDA
+#if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
       if (gc != nullptr && platform::is_gpu_place(p)) {
         auto gpu_place = boost::get<platform::CUDAPlace>(p);
         auto &gc_at_place = gc->at(gpu_place.device);
