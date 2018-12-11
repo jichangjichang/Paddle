@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#ifdef PADDLE_WITH_CUDA
 
 #include "paddle/fluid/framework/op_registry.h"
 #ifdef PADDLE_WITH_CUDA
@@ -33,6 +32,7 @@ template <typename T>
 class CUDNNAffineGridOpKernel : public framework::OpKernel<T> {
  public:
   void Compute(const framework::ExecutionContext& ctx) const override {
+#ifdef CUDNN_PORTING
     PADDLE_ENFORCE(platform::is_gpu_place(ctx.GetPlace()),
                    "It must use CUDAPlace.");
     auto& dev_ctx = ctx.template device_context<platform::CUDADeviceContext>();
@@ -65,6 +65,7 @@ class CUDNNAffineGridOpKernel : public framework::OpKernel<T> {
 
     PADDLE_ENFORCE(platform::dynload::cudnnSpatialTfGridGeneratorForward(
         handle, cudnn_st_desc, theta_data, output_data));
+#endif
   }
 };
 
@@ -72,6 +73,7 @@ template <typename T>
 class CUDNNAffineGridGradOpKernel : public framework::OpKernel<T> {
  public:
   void Compute(const framework::ExecutionContext& ctx) const override {
+#ifdef CUDNN_PORTING
     PADDLE_ENFORCE(platform::is_gpu_place(ctx.GetPlace()),
                    "It must use CUDAPlace.");
     auto& dev_ctx = ctx.template device_context<platform::CUDADeviceContext>();
@@ -104,6 +106,7 @@ class CUDNNAffineGridGradOpKernel : public framework::OpKernel<T> {
 
     PADDLE_ENFORCE(platform::dynload::cudnnSpatialTfGridGeneratorBackward(
         handle, cudnn_st_desc, output_grad_data, theta_grad_data));
+#endif
   }
 };
 
@@ -118,4 +121,3 @@ REGISTER_OP_KERNEL(affine_grid_grad, CUDNN, plat::CUDAPlace,
                    paddle::operators::CUDNNAffineGridGradOpKernel<float>,
                    paddle::operators::CUDNNAffineGridGradOpKernel<double>);
 
-#endif

@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#ifdef PADDLE_WITH_CUDA
 
 #include "paddle/fluid/framework/op_registry.h"
 #ifdef PADDLE_WITH_CUDA
@@ -25,6 +24,7 @@ limitations under the License. */
 namespace paddle {
 namespace operators {
 
+#ifdef CUDNN_PORTING
 using framework::Tensor;
 using ScopedTensorDescriptor = platform::ScopedTensorDescriptor;
 using DataLayout = platform::DataLayout;
@@ -32,11 +32,13 @@ using ScopedSpatialTransformerDescriptor =
     platform::ScopedSpatialTransformerDescriptor;
 template <typename T>
 using CudnnDataType = platform::CudnnDataType<T>;
+#endif
 
 template <typename T>
 class CUDNNGridSampleOpKernel : public framework::OpKernel<T> {
  public:
   void Compute(const framework::ExecutionContext& ctx) const override {
+#ifdef CUDNN_PORTING
     PADDLE_ENFORCE(platform::is_gpu_place(ctx.GetPlace()),
                    "It must use CUDAPlace");
     auto& dev_ctx = ctx.template device_context<platform::CUDADeviceContext>();
@@ -70,6 +72,7 @@ class CUDNNGridSampleOpKernel : public framework::OpKernel<T> {
         handle, cudnn_st_desc, CudnnDataType<T>::kOne(), cudnn_input_desc,
         input_data, grid_data, CudnnDataType<T>::kZero(), cudnn_output_desc,
         output_data));
+#endif
   }
 };
 
@@ -77,6 +80,7 @@ template <typename T>
 class CUDNNGridSampleGradOpKernel : public framework::OpKernel<T> {
  public:
   void Compute(const framework::ExecutionContext& ctx) const override {
+#ifdef CUDNN_PORTING
     PADDLE_ENFORCE(platform::is_gpu_place(ctx.GetPlace()),
                    "It must use CUDAPlace");
     auto& dev_ctx = ctx.template device_context<platform::CUDADeviceContext>();
@@ -124,6 +128,7 @@ class CUDNNGridSampleGradOpKernel : public framework::OpKernel<T> {
         input_grad_data, CudnnDataType<T>::kOne(), cudnn_output_grad_desc,
         output_grad_data, grid_data, CudnnDataType<T>::kZero(),
         grid_grad_data));
+#endif
   }
 };
 
@@ -138,4 +143,3 @@ REGISTER_OP_KERNEL(grid_sampler_grad, CUDNN, plat::CUDAPlace,
                    paddle::operators::CUDNNGridSampleGradOpKernel<float>,
                    paddle::operators::CUDNNGridSampleGradOpKernel<double>);
 
-#endif

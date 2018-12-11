@@ -67,6 +67,8 @@ set(COMMON_OP_DEPS ${COMMON_OP_DEPS} sequence_padding sequence_scale cos_sim_fun
 set(COMMON_OP_DEPS ${COMMON_OP_DEPS} sequence2batch lstm_compute matrix_bit_code gru_compute activation_functions)
 if (WITH_GPU)
   set(COMMON_OP_DEPS ${COMMON_OP_DEPS} depthwise_conv)
+elseif(WITH_AMD_GPU)
+  set(COMMON_OP_DEPS ${COMMON_OP_DEPS} depthwise_conv)
 endif()
 
 # FIXME(typhoonzero): operator deps may not needed.

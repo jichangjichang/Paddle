@@ -16,7 +16,8 @@ limitations under the License. */
 #ifdef PADDLE_WITH_HIP
 #include <hip/hip_runtime.h>
 #include <hip/hip_fp16.h>
-//#include "paddle/fluid/platform/float16.h"
+#define PADDLE_CUDA_FP16
+#include "paddle/fluid/platform/float16.h"
 #else
 #include <cuda.h>
 // NOTE(): support float16 to half in header file.
