@@ -179,7 +179,7 @@ void* GetCUDNNDsoHandle() {
 #if defined(__APPLE__) || defined(__OSX__)
   return GetDsoHandleFromSearchPath(FLAGS_cudnn_dir, "libcudnn.dylib", false);
 #else
-  return GetDsoHandleFromSearchPath(FLAGS_cuda_dir, "libcudnn.so");
+  return GetDsoHandleFromSearchPath(FLAGS_cudnn_dir, "libcudnn.so", false);
 #endif
 }
 
@@ -235,7 +235,7 @@ void* GetMKLMLDsoHandle() {
 #endif
 }
 
-void* GetMIOpenDsoHandle(){
+void* GetMIOpenDsoHandle() {
 #if defined(__APPLE__) || defined(__OSX__)
   return GetDsoHandleFromSearchPath(FLAGS_miopen_dir, "libMIOpen.dylib");
 #else
@@ -243,14 +243,14 @@ void* GetMIOpenDsoHandle(){
 #endif
 }
 
-void* GetHipblasDsoHandle(){
+void* GetHipblasDsoHandle() {
 #if defined(__APPLE__) || defined(__OSX__)
   return GetDsoHandleFromSearchPath(FLAGS_hipblas_dir, "libhipblas.dylib");
 #else
   return GetDsoHandleFromSearchPath(FLAGS_hipblas_dir, "libhipblas.so");
 #endif
 }
-void* GetHiprandDsoHandle(){
+void* GetHiprandDsoHandle() {
 #if defined(__APPLE__) || defined(__OSX__)
   return GetDsoHandleFromSearchPath(FLAGS_hiprand_dir, "libhiprand.dylib");
 #else
