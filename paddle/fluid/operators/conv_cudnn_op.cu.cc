@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
+#ifdef PADDLE_WITH_CUDA
+
 #include "paddle/fluid/framework/eigen.h"
 #include "paddle/fluid/framework/op_registry.h"
 #include "paddle/fluid/memory/memory.h"
@@ -211,11 +213,9 @@ class CUDNNConvOpKernel : public framework::OpKernel<T> {
     }
 
     // get workspace size able to allocate
-    CUDNN_ENFORCE(platform::dynload::cudnnGetConvolutionForwardWorkspaceSize(
-        handle, cudnn_input_desc, cudnn_filter_desc, cudnn_conv_desc,
-        cudnn_output_desc, algo, &workspace_size_in_bytes));
-    // It is possible for float16 on Volta GPU to allocate more memory than
-    // the limit because the algo is overrided to use tensor core.
+    PADDLE_ENFORCE(platform::dynload::miopenConvolutionForwardGetWorkSpaceSize(
+        handle, cudnn_filter_desc, cudnn_input_desc, cudnn_conv_desc,
+        cudnn_output_desc, &workspace_size_in_bytes));
     PADDLE_ENFORCE_LE(workspace_size_in_bytes, workspace_size_limit,
                       "workspace_size to be allocated exceeds the limit");
 
@@ -524,3 +524,5 @@ REGISTER_OP_KERNEL(conv3d, CUDNN, plat::CUDAPlace,
 REGISTER_OP_KERNEL(conv3d_grad, CUDNN, plat::CUDAPlace,
                    paddle::operators::CUDNNConvGradOpKernel<float>,
                    paddle::operators::CUDNNConvGradOpKernel<double>);
+
+#endif
