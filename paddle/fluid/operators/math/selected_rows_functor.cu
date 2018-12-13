@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#include "hip/hip_runtime.h"
 #include <set>
 #include <vector>
 
@@ -125,8 +124,8 @@ struct SelectedRowsAddTensor<platform::CUDADeviceContext, T> {
     const int block_size = 256;
     dim3 threads(block_size, 1);
     dim3 grid(in1_rows.size(), 1);
-    hipLaunchKernelGGL((SelectedRowsAddTensorKernel<T, block_size>),
-        dim3(grid), dim3(threads), 0, context.stream(),
+    hipLaunchKernelGGL((SelectedRowsAddTensorKernel<
+        T, block_size>), dim3(grid), dim3(threads), 0, context.stream(),
         in1_data, in1_rows.CUDAData(context.GetPlace()), out_data,
         in1_row_numel);
 
@@ -138,9 +137,9 @@ struct SelectedRowsAddTensor<platform::CUDADeviceContext, T> {
 
 template struct SelectedRowsAddTensor<platform::CUDADeviceContext, float>;
 template struct SelectedRowsAddTensor<platform::CUDADeviceContext, double>;
-//template struct SelectedRowsAdd<platform::CUDADeviceContext, platform::float16>;
-//template struct SelectedRowsAddTensor<platform::CUDADeviceContext,
-//                                      platform::float16>;
+template struct SelectedRowsAdd<platform::CUDADeviceContext, platform::float16>;
+template struct SelectedRowsAddTensor<platform::CUDADeviceContext,
+                                      platform::float16>;
 
 template <typename T>
 struct SelectedRowsAddTo<platform::CUDADeviceContext, T> {

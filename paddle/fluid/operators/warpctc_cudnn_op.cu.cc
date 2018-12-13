@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
+#ifdef PADDLE_WITH_CUDA
 
 #include "paddle/fluid/framework/mixed_vector.h"
 #include "paddle/fluid/operators/math/softmax.h"
@@ -203,3 +204,4 @@ REGISTER_OP_KERNEL(
     ops::CudnnCTCGradKernel<paddle::platform::CUDADeviceContext, float>);
 #endif
 
+#endif
