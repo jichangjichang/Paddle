@@ -40,6 +40,9 @@ cc_library(modify_op_lock_and_record_event_pass SRCS modify_op_lock_and_record_e
 if (WITH_GPU)
   cc_library(reference_count_pass SRCS reference_count_pass.cc DEPS computation_op_handle scale_loss_grad_op_handle rpc_op_handle
           all_reduce_op_handle reduce_op_handle broadcast_op_handle data_balance_op_handle graph graph_helper pass)
+elseif(WITH_AMD_GPU)
+  cc_library(reference_count_pass SRCS reference_count_pass.cc DEPS computation_op_handle scale_loss_grad_op_handle rpc_op_handle
+          all_reduce_op_handle reduce_op_handle broadcast_op_handle data_balance_op_handle graph graph_helper pass)
 endif()
 
 cc_library(sequential_execution_pass SRCS sequential_execution_pass.cc DEPS graph graph_helper pass)
@@ -50,6 +53,8 @@ cc_library(multi_devices_graph_pass SRCS multi_devices_graph_pass.cc DEPS multi_
 
 set(SSA_GRAPH_EXECUTOR_DEPS graph framework_proto sequential_execution_pass modify_op_lock_and_record_event_pass all_reduce_deps_pass) 
 if (WITH_GPU)
+  list(APPEND SSA_GRAPH_EXECUTOR_DEPS reference_count_pass)
+elseif(WITH_AMD_GPU)
   list(APPEND SSA_GRAPH_EXECUTOR_DEPS reference_count_pass)
 endif()
 
