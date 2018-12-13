@@ -25,7 +25,7 @@ struct GRUUnitFunctor<platform::CPUDeviceContext, T> {
                       const detail::ActivationType active_node,
                       const detail::ActivationType active_gate,
                       bool origin_mode) {
-#ifndef __NVCC__
+#ifndef __HIPCC__
     auto blas = math::GetBlas<platform::CPUDeviceContext, T>(context);
     if (value.prev_out_value) {
       blas.GEMM(false, false, batch_size, frame_size * 2, frame_size, 1,
@@ -58,7 +58,7 @@ struct GRUUnitGradFunctor<platform::CPUDeviceContext, T> {
                       const detail::ActivationType active_node,
                       const detail::ActivationType active_gate,
                       bool origin_mode) {
-#ifndef __NVCC__
+#ifndef __HIPCC__
     detail::backward_state_grad(detail::backward::gru_stateGrad<T>(), value,
                                 grad, frame_size, batch_size, active_node,
                                 origin_mode);

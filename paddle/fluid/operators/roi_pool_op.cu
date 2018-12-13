@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License. */
 
 #include "paddle/fluid/memory/memcpy.h"
+#include "hip/hip_runtime.h"
+#include <float.h>
 #include "paddle/fluid/operators/roi_pool_op.h"
 #include "paddle/fluid/platform/cuda_primitives.h"
 
@@ -72,7 +74,15 @@ __global__ void GPUROIPoolForward(
     wend = min(max(wend + roi_start_w, 0), width);
     bool is_empty = (hend <= hstart) || (wend <= wstart);
 
-    T maxval = is_empty ? 0 : -std::numeric_limits<T>::max();
+    //T maxval = is_empty ? 0 : -std::numeric_limits<T>::max();
+    T maxval = 0;
+    if (!is_empty)
+    {
+        if (std::is_same<T, float>::value)
+            maxval = -FLT_MAX;
+        else
+            maxval = -DBL_MAX;
+    }
     int maxidx = -1;
     const T* offset_input_data =
         input_data + (roi_batch_ind * channels + c) * height * width;
@@ -179,7 +189,7 @@ class GPUROIPoolOpKernel : public framework::OpKernel<T> {
     memory::Copy(gplace, roi_id_data, cplace, roi_batch_id_data, bytes,
                  dev_ctx.stream());
 
-    GPUROIPoolForward<T><<<blocks, threads, 0, dev_ctx.stream()>>>(
+    hipLaunchKernelGGL((GPUROIPoolForward<T>), dim3(blocks), dim3(threads), 0, dev_ctx.stream(),
         output_size, in->data<T>(), rois->data<T>(), spatial_scale, channels,
         height, width, pooled_height, pooled_width, roi_id_data,
         out->mutable_data<T>(ctx.GetPlace()),
@@ -239,7 +249,7 @@ class GPUROIPoolGradOpKernel : public framework::OpKernel<T> {
       int threads = kNumCUDAThreads;
 
       if (output_grad_size > 0) {
-        GPUROIPoolBackward<T><<<blocks, threads, 0, dev_ctx.stream()>>>(
+        hipLaunchKernelGGL((GPUROIPoolBackward<T>), dim3(blocks), dim3(threads), 0, dev_ctx.stream(),
             output_grad_size, rois->data<T>(), out_grad->data<T>(),
             argmax->data<int64_t>(), rois_num, spatial_scale, channels, height,
             width, pooled_height, pooled_width, roi_id_data,

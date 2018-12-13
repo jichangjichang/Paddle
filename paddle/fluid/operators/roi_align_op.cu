@@ -280,7 +280,7 @@ class GPUROIAlignOpKernel : public framework::OpKernel<T> {
     const auto gplace = boost::get<platform::CUDAPlace>(ctx.GetPlace());
     memory::Copy(gplace, roi_id_data, cplace, roi_batch_id_data, bytes,
                  dev_ctx.stream());
-    GPUROIAlignForward<T><<<blocks, threads, 0, dev_ctx.stream()>>>(
+    hipLaunchKernelGGL((GPUROIAlignForward<T>), dim3(blocks), dim3(threads), 0, dev_ctx.stream(),
         output_size, in->data<T>(), rois->data<T>(), spatial_scale, channels,
         height, width, pooled_height, pooled_width, sampling_ratio, roi_id_data,
         out->mutable_data<T>(ctx.GetPlace()));
@@ -339,7 +339,7 @@ class GPUROIAlignGradOpKernel : public framework::OpKernel<T> {
     int threads = kNumCUDAThreads;
 
     if (output_grad_size > 0) {
-      GPUROIAlignBackward<T><<<blocks, threads, 0, dev_ctx.stream()>>>(
+      hipLaunchKernelGGL((GPUROIAlignBackward<T>), dim3(blocks), dim3(threads), 0, dev_ctx.stream(),
           output_grad_size, rois->data<T>(), out_grad->data<T>(), rois_num,
           spatial_scale, channels, height, width, pooled_height, pooled_width,
           sampling_ratio, roi_id_data,

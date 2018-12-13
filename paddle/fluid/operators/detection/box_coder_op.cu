@@ -12,6 +12,7 @@ limitations under the License. */
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include "paddle/fluid/memory/memcpy.h"
+#include "hip/hip_runtime.h"
 #include "paddle/fluid/operators/detection/box_coder_op.h"
 #include "paddle/fluid/platform/cuda_primitives.h"
 
@@ -194,11 +195,11 @@ class BoxCoderCUDAKernel : public framework::OpKernel<T> {
     T* output = output_box->data<T>();
 
     if (code_type == BoxCodeType::kEncodeCenterSize) {
-      EncodeCenterSizeKernel<T><<<grid, block, 0, device_ctx.stream()>>>(
+      hipLaunchKernelGGL((EncodeCenterSizeKernel<T>), dim3(grid), dim3(block), 0, device_ctx.stream(),
           prior_box_data, prior_box_var_data, target_box_data, row, col, len,
           normalized, prior_box_var_size, dev_var_data, var_size, output);
     } else if (code_type == BoxCodeType::kDecodeCenterSize) {
-      DecodeCenterSizeKernel<T><<<grid, block, 0, device_ctx.stream()>>>(
+      hipLaunchKernelGGL((DecodeCenterSizeKernel<T>), dim3(grid), dim3(block), 0, device_ctx.stream(),
           prior_box_data, prior_box_var_data, target_box_data, row, col, len,
           normalized, prior_box_var_size, dev_var_data, var_size, axis, output);
     }

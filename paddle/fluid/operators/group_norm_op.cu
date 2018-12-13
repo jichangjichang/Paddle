@@ -12,7 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#include "cub/cub.cuh"
+#if defined(PADDLE_WITH_CUDA)
+#include <cub/cub.cuh>
+namespace gpuprim = ::cub;
+#elif defined(PADDLE_WITH_HIP)
+#include <hipcub/hipcub.hpp>
+namespace gpuprim = ::hipcub;
+#endif
 #include "paddle/fluid/operators/group_norm_op.h"
 #include "paddle/fluid/platform/cuda_device_function.h"
 
@@ -23,7 +29,8 @@ enum GroupNormKernelFlags { kHasScale = 1, kHasBias = 2 };
 
 #define CHECK_CASE(i, flags, kernel_name, ...)                              \
   if (i == flags) {                                                         \
-    kernel_name<T, i><<<grid, threads, 0, dev_ctx.stream()>>>(__VA_ARGS__); \
+    hipLaunchKernelGGL((kernel_name<T, i>),                                 \
+    dim3(grid), dim3(threads), 0, dev_ctx.stream(), __VA_ARGS__);           \
   }
 
 // 0 for no scale, no bias
@@ -134,7 +141,7 @@ class GroupNormKernel<platform::CUDADeviceContext, T>
     int block_size = std::min(1024, imsize);
     dim3 grid(group_size, groups, x_dims[0]);
     dim3 threads(block_size, 1, 1);
-    GroupNormForwardGetMeanAndVar<T><<<grid, threads, 0, dev_ctx.stream()>>>(
+    hipLaunchKernelGGL((GroupNormForwardGetMeanAndVar<T>), dim3(grid), dim3(threads), 0, dev_ctx.stream(),
         x_data, x_dims[0], x_dims[1], imsize, groups, group_size, mean_data,
         temp_var_data);
     int flags =
