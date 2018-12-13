@@ -171,11 +171,11 @@ class ConcatFunctor<platform::CUDADeviceContext, T> {
     dim3 grid_size = dim3(grid_cols, grid_rows, 1);
 
     if (sameShape) {
-      hipLaunchKernelGGL((KernelConcat), dim3(grid_size), dim3(block_size), 0, context.stream(),
+      hipLaunchKernelGGL((ConcatKernel<T>), dim3(grid_size), dim3(block_size), 0, context.stream(),
           dev_ins_data, in_col, out_row, out_col, output->data<T>());
     } else {
       const int* dev_ins_col_data = inputs_col.CUDAData(context.GetPlace());
-      hipLaunchKernelGGL((KernelConcat), dim3(grid_size), dim3(block_size), 0, context.stream(),
+      hipLaunchKernelGGL((ConcatKernel<T>), dim3(grid_size), dim3(block_size), 0, context.stream(),
           dev_ins_data, dev_ins_col_data, static_cast<int>(inputs_col.size()),
           out_row, out_col, output->data<T>());
     }
@@ -249,11 +249,11 @@ class SplitFunctor<platform::CUDADeviceContext, T> {
     dim3 grid_size = dim3(grid_cols, grid_rows, 1);
 
     if (sameShape) {
-      hipLaunchKernelGGL((KernelConcatGrad), dim3(grid_size), dim3(block_size), 0, context.stream(),
+      hipLaunchKernelGGL((SplitKernel<T>), dim3(grid_size), dim3(block_size), 0, context.stream(),
           input.data<T>(), in_row, in_col, out0_col, dev_out_gpu_data);
     } else {
       const int* dev_outs_col_data = outputs_cols.CUDAData(context.GetPlace());
-      hipLaunchKernelGGL((KernelConcatGrad), dim3(grid_size), dim3(block_size), 0, context.stream(),
+      hipLaunchKernelGGL((SplitKernel<T>), dim3(grid_size), dim3(block_size), 0, context.stream(),
           input.data<T>(), in_row, in_col, dev_outs_col_data,
           static_cast<int>(outputs_cols.size()), dev_out_gpu_data);
     }

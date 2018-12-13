@@ -138,9 +138,9 @@ struct SelectedRowsAddTensor<platform::CUDADeviceContext, T> {
 
 template struct SelectedRowsAddTensor<platform::CUDADeviceContext, float>;
 template struct SelectedRowsAddTensor<platform::CUDADeviceContext, double>;
-template struct SelectedRowsAdd<platform::CUDADeviceContext, platform::float16>;
-template struct SelectedRowsAddTensor<platform::CUDADeviceContext,
-                                      platform::float16>;
+//template struct SelectedRowsAdd<platform::CUDADeviceContext, platform::float16>;
+//template struct SelectedRowsAddTensor<platform::CUDADeviceContext,
+//                                      platform::float16>;
 
 template <typename T>
 struct SelectedRowsAddTo<platform::CUDADeviceContext, T> {
@@ -222,15 +222,9 @@ struct SelectedRowsAddToTensor<platform::CUDADeviceContext, T> {
     auto* in2_data = input2->data<T>();
     const int block_size = 256;
     dim3 threads(block_size, 1);
-<<<<<<< HEAD
     dim3 grid(in1_rows.size(), 1);
-    SelectedRowsAddToTensorKernel<
-        T, block_size><<<grid, threads, 0, context.stream()>>>(
-=======
-    dim3 grid(1, in1_rows.size());
-    hipLaunchKernelGGL((SelectedRowsAddToTensorKernel<T, block_size>),
-        dim3(grid), dim3(threads), 0, context.stream(),
->>>>>>> 77f6a76... Add HIP support to fluid/operator.
+    hipLaunchKernelGGL((SelectedRowsAddToTensorKernel<
+        T, block_size>), dim3(grid), dim3(threads), 0, context.stream(),
         in1_data, in1_rows.CUDAData(context.GetPlace()), in2_data,
         in1_row_numel);
   }
@@ -311,14 +305,7 @@ struct MergeAdd<platform::CUDADeviceContext, T> {
     dim3 threads(block_size, 1);
     dim3 grid1(input_rows.size(), 1);
 
-<<<<<<< HEAD
-    MergeAddKernel<T, 256><<<grid1, threads, 0, context.stream()>>>(
-=======
-    hipLaunchKernelGGL((MergeAddKernel<T, 256>),
-                  dim3(grid1), dim3(threads), 0,
-                  reinterpret_cast<const platform::CUDADeviceContext&>(context)
-                      .stream(),
->>>>>>> 77f6a76... Add HIP support to fluid/operator.
+    hipLaunchKernelGGL((MergeAddKernel<T, 256>), dim3(grid1), dim3(threads), 0, context.stream(),
         input_data, input_rows.CUDAData(context.GetPlace()), out_data,
         out.mutable_rows()->CUDAMutableData(context.GetPlace()),
         out.rows().size(), input_width);
@@ -384,7 +371,7 @@ struct MergeAdd<platform::CUDADeviceContext, T> {
       auto& input_rows = input->rows();
       dim3 grid1(input_rows.size(), 1);
 
-      MergeAddKernel<T, 256><<<grid1, threads, 0, context.stream()>>>(
+      hipLaunchKernelGGL((MergeAddKernel<T, 256>), dim3(grid1), dim3(threads), 0, context.stream(),
           input_data, input_rows.CUDAData(context.GetPlace()), out_data,
           out.mutable_rows()->CUDAMutableData(context.GetPlace()),
           out.rows().size(), input_width);
@@ -471,15 +458,9 @@ struct UpdateToTensor<platform::CUDADeviceContext, T> {
     auto* in2_data = input2->data<T>();
 
     dim3 threads(platform::PADDLE_CUDA_NUM_THREADS, 1);
-<<<<<<< HEAD
     dim3 grid(in1_rows.size(), 1);
-    UpdateToTensorKernel<T, platform::PADDLE_CUDA_NUM_THREADS><<<
-        grid, threads, 0, context.stream()>>>(in1_data, in1_rows.cuda_data(),
-=======
-    dim3 grid(1, in1_rows.size());
     hipLaunchKernelGGL((UpdateToTensorKernel<T, platform::PADDLE_CUDA_NUM_THREADS>),
         dim3(grid), dim3(threads), 0, context.stream(), in1_data, in1_rows.cuda_data(),
->>>>>>> 77f6a76... Add HIP support to fluid/operator.
                                               op, in2_data, in1_row_numel);
   }
 };

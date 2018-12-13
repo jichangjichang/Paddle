@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#ifdef PADDLE_WITH_CUDA
 #include "paddle/fluid/framework/eigen.h"
 #include "paddle/fluid/framework/op_registry.h"
 #include "paddle/fluid/memory/memory.h"
@@ -35,6 +34,7 @@ template <typename T>
 class CUDNNConvTransposeOpKernel : public framework::OpKernel<T> {
  public:
   void Compute(const framework::ExecutionContext& ctx) const override {
+#ifdef CUDNN_PORTING
     PADDLE_ENFORCE(platform::is_gpu_place(ctx.GetPlace()),
                    "It must use CUDAPlace.");
     auto* input = ctx.Input<Tensor>("Input");
@@ -117,6 +117,7 @@ class CUDNNConvTransposeOpKernel : public framework::OpKernel<T> {
       };
       workspace_handle.RunFunc(cudnn_func, workspace_size_in_bytes);
     }
+#endif
   }
 };
 
@@ -124,6 +125,7 @@ template <typename T>
 class CUDNNConvTransposeGradOpKernel : public framework::OpKernel<T> {
  public:
   void Compute(const framework::ExecutionContext& ctx) const override {
+#ifdef CUDNN_PORTING
     PADDLE_ENFORCE(platform::is_gpu_place(ctx.GetPlace()),
                    "It must use CUDAPlace.");
     auto input = ctx.Input<Tensor>("Input");
@@ -260,6 +262,7 @@ class CUDNNConvTransposeGradOpKernel : public framework::OpKernel<T> {
         workspace_handle.RunFunc(cudnn_func, workspace_size_in_bytes);
       }
     }
+#endif
   }
 };
 
@@ -281,4 +284,3 @@ REGISTER_OP_KERNEL(conv3d_transpose, CUDNN, ::paddle::platform::CUDAPlace,
 REGISTER_OP_KERNEL(conv3d_transpose_grad, CUDNN, ::paddle::platform::CUDAPlace,
                    ops::CUDNNConvTransposeGradOpKernel<float>
                    /*,ops::CUDNNConvTransposeGradOpKernel<double>*/);
-#endif

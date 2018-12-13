@@ -31,6 +31,7 @@ template <typename T>
 class PoolCUDNNOpKernel : public framework::OpKernel<T> {
  public:
   void Compute(const framework::ExecutionContext &ctx) const override {
+#ifdef CUDNN_PORTING
     PADDLE_ENFORCE(platform::is_gpu_place(ctx.GetPlace()),
                    "It must use CUDAPlace.");
 
@@ -93,6 +94,7 @@ class PoolCUDNNOpKernel : public framework::OpKernel<T> {
     PADDLE_ENFORCE(platform::dynload::miopenPoolingForward(
         handle, cudnn_pool_desc, &alpha, cudnn_input_desc, input_data, &beta,
         cudnn_output_desc, output_data, false, (T*)(cudnn_workspace.get()), workspace_size_in_bytes));
+#endif
   }
 };
 
@@ -100,6 +102,7 @@ template <typename T>
 class PoolCUDNNGradOpKernel : public framework::OpKernel<T> {
  public:
   void Compute(const framework::ExecutionContext &ctx) const override {
+#ifdef CUDNN_PORTING
     PADDLE_ENFORCE(platform::is_gpu_place(ctx.GetPlace()),
                    "It must use CUDAPlace.");
 
@@ -176,6 +179,7 @@ class PoolCUDNNGradOpKernel : public framework::OpKernel<T> {
           cudnn_output_desc, output_grad_data, cudnn_input_desc, input_data,
           &beta, cudnn_input_desc, input_grad_data, (T*)(cudnn_workspace.get())));
     }
+#endif
   }
 };
 
