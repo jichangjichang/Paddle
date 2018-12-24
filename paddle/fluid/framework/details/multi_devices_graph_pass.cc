@@ -478,7 +478,7 @@ bool MultiDevSSAGraphBuilder::IsSparseGradient(const std::string &og) const {
 
 void MultiDevSSAGraphBuilder::SetCommunicationContext(
     OpHandleBase *op_handle, const platform::Place &p) const {
-#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)) && !defined(_WIN32)
+#if defined(PADDLE_WITH_CUDA) && !defined(_WIN32)
   if (nccl_ctxs_ == nullptr) {
     op_handle->SetDeviceContext(p,
                                 platform::DeviceContextPool::Instance().Get(p));

@@ -81,7 +81,9 @@ FeedFetchList ScopeBufferedSSAGraphExecutor::Run(
     drop_scope_counter_ = 0;
     // Wait All computational streams
     for (auto p : places_) {
+#ifndef PADDLE_WITH_HIP
       platform::DeviceContextPool::Instance().Get(p)->Wait();
+#endif
 #if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
       if (gc != nullptr && platform::is_gpu_place(p)) {
         auto gpu_place = boost::get<platform::CUDAPlace>(p);
