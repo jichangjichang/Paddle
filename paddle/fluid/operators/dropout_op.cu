@@ -20,6 +20,8 @@ limitations under the License. */
 #include "paddle/fluid/operators/dropout_op.h"
 #include "paddle/fluid/platform/float16.h"
 
+#define THURST_RANDOM_LIMIT_SIZE 4000000
+
 namespace paddle {
 namespace operators {
 
@@ -46,6 +48,32 @@ __global__ void RandomGenerator(const size_t n, const int seed,
       rng.discard(step_size);
     }
     if (dist(rng) < dropout_prob) {
+      mask = static_cast<T>(0);
+    } else {
+      if (is_upscale_in_train) {
+        mask = static_cast<T>(1.0f / (1.0f - dropout_prob));
+      } else {
+        mask = static_cast<T>(1);
+      }
+    }
+    dest = s * mask;
+    mask_data[idx] = mask;
+    dst[idx] = dest;
+  }
+}
+
+template <typename T>
+__global__ void RandomGenerator(const size_t n, const int seed,
+                                const float dropout_prob, const T* src,
+                                T* mask_data, T* dst, float* random_data,
+                                bool is_upscale_in_train) {
+  int idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+  T mask;
+  T dest;
+  for (; idx < n; idx += blockDim.x * gridDim.x) {
+    T s = src[idx];
+    if (random_data[idx] < dropout_prob) {
       mask = static_cast<T>(0);
     } else {
       if (is_upscale_in_train) {
@@ -88,9 +116,25 @@ class GPUDropoutKernel : public framework::OpKernel<T> {
 
       int threads = 512;
       int grid = (x->numel() + threads - 1) / threads;
-      hipLaunchKernelGGL((RandomGenerator<T>), dim3(grid), dim3(threads), 0, context.cuda_device_context().stream(), 
+#if defined(PADDLE_WITH_HIP)
+      if(size > THURST_RANDOM_LIMIT_SIZE){
+	//large size, generate random buffer one-shot to improve performance
+	framework::Tensor random;
+	auto* random_data = random.mutable_data<float>(mask->dims(), context.GetPlace());
+	hiprandGenerator_t generator = context.cuda_device_context().rand_generator();
+	PADDLE_ENFORCE(platform::dynload::hiprandSetPseudoRandomGeneratorSeed(generator, seed));
+	PADDLE_ENFORCE(platform::dynload::hiprandGenerateUniform(generator, random_data, size));
+	hipLaunchKernelGGL((RandomGenerator<T>), dim3(grid), dim3(threads), 0, context.cuda_device_context().stream(),
+	  size, seed, dropout_prob, x_data, mask_data, y_data, random_data,
+          (dropout_implementation == "upscale_in_train"));
+      } else {
+#endif
+        hipLaunchKernelGGL((RandomGenerator<T>), dim3(grid), dim3(threads), 0, context.cuda_device_context().stream(),
           size, seed, dropout_prob, x_data, mask_data, y_data,
           (dropout_implementation == "upscale_in_train"));
+#if defined(PADDLE_WITH_HIP)
+      }
+#endif
     } else {
       auto X = EigenMatrix<T>::Reshape(*x, 1);
       auto Y = EigenMatrix<T>::Reshape(*y, 1);

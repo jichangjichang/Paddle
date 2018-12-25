@@ -30,6 +30,7 @@ limitations under the License. */
 #include "paddle/fluid/platform/cuda_helper.h"
 #include "paddle/fluid/platform/dynload/hipblas.h"
 #include "paddle/fluid/platform/dynload/miopen.h"
+#include "paddle/fluid/platform/dynload/hiprand.h"
 #include "paddle/fluid/platform/gpu_info.h"
 #endif
 
@@ -450,6 +451,8 @@ class CUDADeviceContext : public DeviceContext {
   /*! \brief  Return cuda stream in the device context. */
   hipStream_t stream() const;
 
+  hiprandGenerator_t rand_generator() const;
+
   template <typename Callback>
   void RecordEvent(hipEvent_t ev, Callback callback) {
     std::lock_guard<std::recursive_mutex> guard(mutex_);
@@ -479,6 +482,7 @@ class CUDADeviceContext : public DeviceContext {
   hipStream_t stream_;
   miopenHandle_t miopen_handle_;
   std::unique_ptr<HipblasHandleHolder> hipblas_handle_;
+  hiprandGenerator_t hiprand_generator;
   int compute_capability;
   int multi_process;
   int max_threads_per_mp;

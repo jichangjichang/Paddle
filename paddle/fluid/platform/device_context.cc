@@ -499,6 +499,7 @@ CUDADeviceContext::CUDADeviceContext(CUDAPlace place)
   if (dynload::HasMIOpen()) {
     miopen_holder_.reset(new MiopenHolder(&stream_, place));
   }
+  hiprand_generator = nullptr;
 }
 
 CUDADeviceContext::~CUDADeviceContext() {
@@ -509,6 +510,9 @@ CUDADeviceContext::~CUDADeviceContext() {
   eigen_stream_.reset();
   eigen_device_.reset();
   PADDLE_ENFORCE(hipStreamDestroy(stream_));
+  if( hiprand_generator != nullptr ){
+    PADDLE_ENFORCE(dynload::hiprandDestroyGenerator(hiprand_generator));
+  }
 }
 
 Place CUDADeviceContext::GetPlace() const { return place_; }
@@ -540,6 +544,13 @@ MiopenWorkspaceHandle CUDADeviceContext::miopen_workspace_handle() const {
 }
 
 hipStream_t CUDADeviceContext::stream() const { return stream_; }
+
+hiprandGenerator_t CUDADeviceContext::rand_generator() const {
+  if( hiprand_generator == nullptr ){
+    PADDLE_ENFORCE(dynload::hiprandCreateGenerator((hiprandGenerator_t *)&hiprand_generator, HIPRAND_RNG_PSEUDO_DEFAULT));
+  }
+  return hiprand_generator;
+}
 
 CUDAPinnedDeviceContext::CUDAPinnedDeviceContext() {
   eigen_device_.reset(new Eigen::DefaultDevice());
