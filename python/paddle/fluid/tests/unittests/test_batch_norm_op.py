@@ -259,7 +259,7 @@ class TestBatchNormOpInference(unittest.TestCase):
             places.append(core.CUDAPlace(0))
 
         for place in places:
-            for data_format in ["NCHW", "NHWC"]:
+            for data_format in ["NCHW"]:
                 self.check_with_place(place, data_format, self.dtype,
                                       [2, 3, 4, 5])
                 self.check_with_place(place, data_format, self.dtype, [2, 3])
@@ -283,7 +283,7 @@ class TestFP16BatchNormOpInference(TestBatchNormOpInference):
                 places.append(place)
 
         for place in places:
-            for data_format in ["NCHW", "NHWC"]:
+            for data_format in ["NCHW"]:
                 self.check_with_place(place, data_format, self.dtype,
                                       [2, 3, 4, 5])
                 self.check_with_place(place, data_format, self.dtype, [2, 3])
@@ -293,7 +293,7 @@ class TestBatchNormOpTraining(unittest.TestCase):
     def setUp(self):
         self.use_mkldnn = False
         self.fuse_with_relu = False
-        self.data_formats = ["NCHW", "NHWC"]
+        self.data_formats = ["NCHW"]
         self.init_kernel_type()
 
     def __assert_close(self, tensor, np_array, msg, atol=1e-4):
