@@ -43,7 +43,11 @@ class SigmoidCrossEntropyWithLogitsKernel : public framework::OpKernel<T> {
       } else {
         T term1 = (x > 0) ? x : 0;
         T term2 = x * label;
+#ifdef __HIP_DEVICE_COMPILE__
+        T term3 = logf(static_cast<T>(1) + expf(-(abs(x))));
+#else
         T term3 = std::log(static_cast<T>(1) + std::exp(-std::abs(x)));
+#endif
         out_data[idx] = term1 - term2 + term3;
       }
     }
@@ -87,7 +91,11 @@ class SigmoidCrossEntropyWithLogitsGradKernel : public framework::OpKernel<T> {
       if (static_cast<int>(label) == ignore_index) {
         dx_data[idx] = static_cast<T>(0.);
       } else {
+#ifdef __HIP_DEVICE_COMPILE__
+        T simoid_x = static_cast<T>(1) / (static_cast<T>(1) + expf(-x));
+#else
         T simoid_x = static_cast<T>(1) / (static_cast<T>(1) + std::exp(-x));
+#endif
         T diff = simoid_x - label;
         dx_data[idx] = dout * diff;
       }

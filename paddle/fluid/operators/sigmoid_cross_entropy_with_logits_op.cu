@@ -11,7 +11,13 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
-#include "cub/cub.cuh"
+#if defined(PADDLE_WITH_CUDA)
+#include <cub/cub.cuh>
+namespace gpuprim = ::cub;
+#elif defined(PADDLE_WITH_HIP)
+#include <hipcub/hipcub.hpp>
+namespace gpuprim = ::hipcub;
+#endif
 #include "paddle/fluid/operators/sigmoid_cross_entropy_with_logits_op.h"
 #include "paddle/fluid/platform/cuda_primitives.h"
 #include "paddle/fluid/platform/hostdevice.h"
@@ -62,7 +68,7 @@ __global__ void GPUSigmoidForward(const T *x_data, const T *label_data,
 
 template <typename T, int BlockDim>
 __global__ void Sum(const T *counts, int num, const T eps, T *sum) {
-  typedef cub::BlockReduce<double, BlockDim> BlockReduce;
+  typedef gpuprim::BlockReduce<double, BlockDim> BlockReduce;
   __shared__ typename BlockReduce::TempStorage temp_storage;
   T in = 0;
   for (int i = threadIdx.x; i < num; i += BlockDim) {
@@ -70,7 +76,7 @@ __global__ void Sum(const T *counts, int num, const T eps, T *sum) {
   }
   __syncthreads();
   auto out =
-      BlockReduce(temp_storage).Reduce(static_cast<double>(in), cub::Sum());
+      BlockReduce(temp_storage).Reduce(static_cast<double>(in), gpuprim::Sum());
   __syncthreads();
   if (threadIdx.x == 0) {
     T a = out > eps ? out : eps;
