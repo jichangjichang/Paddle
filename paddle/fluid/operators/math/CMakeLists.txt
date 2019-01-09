@@ -65,7 +65,7 @@ math_library(prelu)
 math_library(tree2col DEPS math_function)
 
 hip_test(math_function_test SRCS math_function_test.cc DEPS math_function)
-hip_test(selected_rows_functor_test SRCS selected_rows_functor_test.cc DEPS selected_rows_functor)
+#hip_test(selected_rows_functor_test SRCS selected_rows_functor_test.cc DEPS selected_rows_functor)
 cc_test(im2col_test SRCS im2col_test.cc DEPS im2col)
 cc_test(vol2col_test SRCS vol2col_test.cc DEPS vol2col)
 cc_test(sequence_padding_test SRCS sequence_padding_test.cc DEPS sequence_padding)
