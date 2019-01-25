@@ -36,6 +36,8 @@ detection_library(yolov3_loss_op SRCS yolov3_loss_op.cc)
 
 if(WITH_GPU)
   detection_library(generate_proposals_op SRCS generate_proposals_op.cc generate_proposals_op.cu DEPS memory cub)
+elseif (WITH_AMD_GPU)
+  detection_library(generate_proposals_op SRCS generate_proposals_op.cc generate_proposals_op.cu DEPS memory rocprim)
 else()
   detection_library(generate_proposals_op SRCS generate_proposals_op.cc)
 endif()
