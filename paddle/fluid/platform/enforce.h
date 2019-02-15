@@ -267,7 +267,7 @@ inline bool is_error(hiprandStatus_t stat) {
 
 inline void throw_on_error(hiprandStatus_t stat, const std::string& msg) {
 #ifndef REPLACE_ENFORCE_GLOG
-  throw thrust::system_error(hipErrorLaunchFailure,, thrust::cuda_category(),
+  throw thrust::system_error(hipErrorLaunchFailure, thrust::cuda_category(),
                              msg);
 #else
   LOG(FATAL) << msg;

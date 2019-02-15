@@ -37,7 +37,6 @@ __device__ __inline__ void CudaAtomicAddWithWarp(T* sum, T value) {
   value = WarpReduce(temp_storage).Sum(value);
   if (gpuprim::LaneId() == 0) platform::CudaAtomicAdd(sum, value);
 }
-#endif
 
 #define ARG_DEFINE_KernelDepthwiseConv                                         \
   const T *const input_data, const T *const filter_data, const int batch_size, \
@@ -81,7 +80,7 @@ __device__ __inline__ void KernelDepthwiseConv(ARG_DEFINE_KernelDepthwiseConv) {
               w_in < w_end) {
             const int offset = in_offset + h_in * input_width + w_in;
             if (fuse_relu_before_conv) {
-              value += weight[weight_offset] * max(0.0f, input_data[offset]);
+              value += weight[weight_offset] * max(static_cast<T>(0.0f), input_data[offset]);
             } else {
               value += weight[weight_offset] * input_data[offset];
             }
@@ -136,7 +135,7 @@ __device__ __inline__ void KernelDepthwiseConvCFilter(
             const int offset = in_offset + h_in * input_width + w_in;
             if (fuse_relu_before_conv) {
               value += r_weight[h_f * c_filter + w_f] *
-                       max(0.0f, input_data[offset]);
+                       max(static_cast<T>(0.0f), input_data[offset]);
             } else {
               value += r_weight[h_f * c_filter + w_f] * input_data[offset];
             }
@@ -390,7 +389,7 @@ __device__ __inline__ void KernelDepthwiseConvFilterGrad(
                        image_wk;
         if (fuse_relu_before_conv) {
           s += output_grad_data[gaid(bid, kernel_id, image_h, image_w)] *
-               max(0.0f, input_data[input_id]);
+               max(static_cast<T>(0.0f), input_data[input_id]);
         } else {
           s += output_grad_data[gaid(bid, kernel_id, image_h, image_w)] *
                input_data[input_id];
@@ -479,7 +478,7 @@ class DepthwiseConvFunctor<platform::CUDADeviceContext, T,
           stride_height == stride_width && stride_height == c_stride &&      \
           (ksize_height == ksize_width && ksize_height == c_filter ||        \
            c_filter == -1)) {                                                \
-    hipLaunchKernelGGL((KernelDepthwiseConvSp<                               \                    \
+    hipLaunchKernelGGL((KernelDepthwiseConvSp<                               \
         T, c_filter_multiplier, c_stride, c_filter,                          \
         fuse_relu_before_conv>), dim3(grid), dim3(threads), 0, context.stream(),   \
         input_data, filter_data, batch_size, output_channels, output_height, \
@@ -626,7 +625,7 @@ class DepthwiseConvFilterGradFunctor<platform::CUDADeviceContext, T,
 
 #define check_case(c_filter_multiplier)                                       \
   if (c_filter_multiplier == 0 || c_filter_multiplier == filter_multiplier) { \
-    hipLaunchKernelGGL((KernelDepthwiseConvFilterGradSp<                      \                  \
+    hipLaunchKernelGGL((KernelDepthwiseConvFilterGradSp<                      \
         T, c_filter_multiplier,                                               \
         fuse_relu_before_conv>), dim3(grid), dim3(threads), 0, context.stream(),    \
         output_grad_data, input_data, batch_size, output_channels,            \

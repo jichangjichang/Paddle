@@ -67,8 +67,8 @@ class ShuffleChannelOpCUDAKernel : public framework::OpKernel<T> {
     const T* input_data = input->data<T>();
     T* output_data = output->mutable_data<T>(ctx.GetPlace());
 
-    ShuffleChannel<
-        T><<<blocks, threads, 0, ctx.cuda_device_context().stream()>>>(
+    hipLaunchKernelGGL((ShuffleChannel<
+        T>),dim3(blocks), dim3(threads), 0, ctx.cuda_device_context().stream(),
         count, feature_map_size, output_data, input_data, group_row,
         group_column, sp_sz);
   }
@@ -102,8 +102,8 @@ class ShuffleChannelGradOpCUDAKernel : public framework::OpKernel<T> {
     int threads = kNumCUDAThreads;
     int count = num * group_column * group_row * sp_sz;
 
-    ShuffleChannel<
-        T><<<blocks, threads, 0, ctx.cuda_device_context().stream()>>>(
+    hipLaunchKernelGGL((ShuffleChannel<
+        T>),dim3(blocks), dim3(threads), 0, ctx.cuda_device_context().stream(),
         count, feature_map_size, input_grad_data, output_grad_data, group_row,
         group_column, sp_sz);
   }

@@ -45,10 +45,10 @@ enum GroupNormKernelFlags { kHasScale = 1, kHasBias = 2 };
 
 template <typename T>
 __device__ __inline__ void CudaAtomicAddWithWarp(T* sum, T value) {
-  typedef cub::WarpReduce<T> WarpReduce;
+  typedef gpuprim::WarpReduce<T> WarpReduce;
   typename WarpReduce::TempStorage temp_storage;
   value = WarpReduce(temp_storage).Sum(value);
-  if (cub::LaneId() == 0) platform::CudaAtomicAdd(sum, value);
+  if (gpuprim::LaneId() == 0) platform::CudaAtomicAdd(sum, value);
 }
 
 template <typename T>

@@ -59,7 +59,7 @@ class GPUBoxClipKernel : public framework::OpKernel<T> {
     auto stream = dev_ctx.stream();
     const size_t batch_size = lod.back().size() - 1;
     T *output_data = output->mutable_data<T>(dev_ctx.GetPlace());
-    GPUBoxClip<T, 512><<<batch_size, 512, 0, stream>>>(
+    hipLaunchKernelGGL((GPUBoxClip<T, 512>),dim3(batch_size), dim3(512), 0, stream,
         input->data<T>(), abs_offset_lod[0].CUDAMutableData(dev_ctx.GetPlace()),
         bbox_width, im_info->data<T>(), output_data);
   }

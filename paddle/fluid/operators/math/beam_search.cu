@@ -342,8 +342,8 @@ class BeamSearchFunctor<platform::CUDADeviceContext, T> {
                             static_cast<int>(beam_size));
       switch (platform::RoundToPowerOfTwo(beam_size * seq_width)) {
         CUDA_LAUNCH_KERNEL_HELPER(
-            BeamSearchKernelSingle<kPowerOfTwoDim, kMaxThreadsPerSeq><<<
-                1, kMaxThreadsPerSeq, 0, context.stream()>>>(
+            hipLaunchKernelGGL((BeamSearchKernelSingle<kPowerOfTwoDim, kMaxThreadsPerSeq>),
+                dim3(1), dim3(kMaxThreadsPerSeq), 0, context.stream(),
                 selected_ids_data, selected_scores_data, parent_idx_data,
                 selected_offsets, pre_ids_data, pre_scores_data, ids_data,
                 scores_data, seq_length, static_cast<int>(seq_width),
@@ -360,8 +360,8 @@ class BeamSearchFunctor<platform::CUDADeviceContext, T> {
                             static_cast<int>(beam_size));
       switch (platform::RoundToPowerOfTwo(beam_size * num_seqs * 32)) {
         CUDA_LAUNCH_KERNEL_HELPER(
-            BeamSearchKernel<kPowerOfTwoDim, kMaxThreadsPerSeq, kMaxSeqs><<<
-                1, num_seqs * kMaxThreadsPerSeq, 0, context.stream()>>>(
+            hipLaunchKernelGGL((BeamSearchKernel<kPowerOfTwoDim, kMaxThreadsPerSeq, kMaxSeqs>),
+                dim3(1), dim3(num_seqs * kMaxThreadsPerSeq), 0, context.stream(),
                 selected_ids_data, selected_scores_data, parent_idx_data,
                 selected_offsets, pre_ids_data, pre_scores_data, ids_data,
                 scores_data, seq_offsets, static_cast<int>(num_seqs),

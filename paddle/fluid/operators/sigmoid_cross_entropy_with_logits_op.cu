@@ -134,14 +134,14 @@ class GPUSigmoidCrossEntropyWithLogitsKernel : public framework::OpKernel<T> {
     int limit = Out->numel();
     int blocks = NumBlocks(limit);
     int threads = kNumCUDAThreads;
-    GPUSigmoidForward<T><<<blocks, threads, 0, dev_ctx.stream()>>>(
+    hipLaunchKernelGGL((GPUSigmoidForward<T>),dim3(blocks), dim3(threads), 0, dev_ctx.stream(),
         X->data<T>(), Labels->data<T>(), ignore_index, limit, out_data, counts);
     if (normalize) {
       auto norm_ptr = allocator.Allocate(sizeof(T));
       T *norm = reinterpret_cast<T *>(norm_ptr->ptr());
-      Sum<T, kNumCUDAThreads><<<1, kNumCUDAThreads, 0, dev_ctx.stream()>>>(
+      hipLaunchKernelGGL((Sum<T, kNumCUDAThreads>),dim3(1), dim3(kNumCUDAThreads), 0, dev_ctx.stream(),
           counts, limit, static_cast<T>(1e-5), norm);
-      Div<T><<<blocks, threads, 0, dev_ctx.stream()>>>(out_data, limit, norm);
+      hipLaunchKernelGGL((Div<T>),dim3(blocks), dim3(threads), 0, dev_ctx.stream(), out_data, limit, norm);
     }
   }
 };
@@ -170,16 +170,16 @@ class GPUSigmoidCrossEntropyWithLogitsGradKernel
     int limit = dX->numel();
     int blocks = NumBlocks(limit);
     int threads = kNumCUDAThreads;
-    GPUSigmoidBackward<T><<<blocks, threads, 0, dev_ctx.stream()>>>(
+    hipLaunchKernelGGL((GPUSigmoidBackward<T>), dim3(blocks), dim3(threads), 0, dev_ctx.stream(),
         X->data<T>(), Labels->data<T>(), ignore_index, dOut->data<T>(), limit,
         dx_data, counts);
     bool normalize = context.Attr<bool>("normalize");
     if (normalize) {
       auto norm_ptr = allocator.Allocate(sizeof(T));
       T *norm = reinterpret_cast<T *>(norm_ptr->ptr());
-      Sum<T, kNumCUDAThreads><<<1, kNumCUDAThreads, 0, dev_ctx.stream()>>>(
+      hipLaunchKernelGGL((Sum<T, kNumCUDAThreads>), dim3(1), dim3(kNumCUDAThreads), 0, dev_ctx.stream(),
           counts, limit, static_cast<T>(1e-5), norm);
-      Div<T><<<blocks, threads, 0, dev_ctx.stream()>>>(dx_data, limit, norm);
+      hipLaunchKernelGGL((Div<T>), dim3(blocks), dim3(threads), 0, dev_ctx.stream(), dx_data, limit, norm);
     }
   }
 };

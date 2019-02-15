@@ -111,7 +111,7 @@ class Tree2ColFunctor<platform::CUDADeviceContext, T> {
         {static_cast<int64_t>(max_size), static_cast<int64_t>(patch_elem_size)},
         gpu_place);
     constant(context, patch, 0);
-    tree2col<T><<<grid, threads, 0, stream>>>(
+    hipLaunchKernelGGL((tree2col<T>), dim3(grid), dim3(threads), 0, stream,
         eta_gpu.data<T>(), node_gpu.data<int>(), index_gpu.data<int>(),
         node_features.data<T>(), patch->data<T>(), feature_size, patch_size);
   }
@@ -192,7 +192,7 @@ class Col2TreeFunctor<platform::CUDADeviceContext, T> {
         gpu_place);
 
     constant(context, embedding_grad, 0);
-    tree2col<T><<<grid, threads, 0, stream>>>(
+    hipLaunchKernelGGL((tree2col<T>), dim3(grid), dim3(threads), 0, stream,
         eta_gpu.data<T>(), node_gpu.data<int>(), index_gpu.data<int>(),
         patch_grad.data<T>(), embedding_grad->data<T>(), output_size,
         grad_size);
