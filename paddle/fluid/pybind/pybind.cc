@@ -646,7 +646,7 @@ All parameter, weight, gradient are variables in Paddle.
   py::class_<platform::CUDAPlace>(m, "CUDAPlace")
       .def("__init__",
            [](platform::CUDAPlace &self, int dev_id) {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
              PADDLE_ENFORCE(
                  dev_id >= 0 && dev_id < platform::GetCUDADeviceCount(),
                  "Invalid CUDAPlace(%d), must inside [0, %d)", dev_id,
@@ -665,7 +665,7 @@ All parameter, weight, gradient are variables in Paddle.
   py::class_<paddle::platform::CUDAPinnedPlace>(m, "CUDAPinnedPlace")
       .def("__init__",
            [](platform::CUDAPinnedPlace &) {
-#ifndef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
              PADDLE_THROW("Cannot use CUDAPinnedPlace in CPU only version");
 #endif
            })

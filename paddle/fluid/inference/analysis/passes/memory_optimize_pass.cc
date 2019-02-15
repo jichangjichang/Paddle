@@ -168,7 +168,9 @@ bool FindSuitableTensorToReuse(
     if (!cluster->count(candidate)) continue;
 
     size_t space = space_table.at(candidate);
-    size_t space_diff = std::abs<size_t>(space - space_required);
+    // TODO: abs for unsigned type make no sense and will not compile in higher gcc
+    //size_t space_diff = std::abs<size_t>(space - space_required);
+    size_t space_diff = space>space_required?(space-space_required):(space_required-space);
     if (space_diff < best_fit.second) {
       best_fit.first = candidate;
       best_fit.second = space_diff;
