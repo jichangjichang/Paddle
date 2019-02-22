@@ -93,7 +93,7 @@ struct ReduceOpHandle : public OpHandleBase {
  protected:
   void RunImpl() override;
 
-#if defined PADDLE_WITH_CUDA && defined PADDLE_WITH_DISTRIBUTE
+#if (defined PADDLE_WITH_CUDA || defined PADDLE_WITH_HIP) && defined PADDLE_WITH_DISTRIBUTE
   template <typename DevCtx, typename DataType>
   void GatherSelectedRows(
       const std::vector<const SelectedRows *> &src_selecte_rows_,

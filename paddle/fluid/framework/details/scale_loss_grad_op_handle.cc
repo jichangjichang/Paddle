@@ -53,7 +53,7 @@ struct ScaleLossGradFunctor {
     if (platform::is_cpu_place(place_)) {
       *out_data = static_cast<OutT>(coeff_);
     } else {
-#ifdef PADDLE_WITH_CUDA
+#if (defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP))
       OutT cast_coeff = static_cast<OutT>(coeff_);
       auto stream = static_cast<platform::CUDADeviceContext *>(ctx_)->stream();
       memory::Copy(boost::get<platform::CUDAPlace>(place_), out_data,

@@ -16,7 +16,7 @@
 #include "paddle/fluid/framework/details/container_cast.h"
 #include "paddle/fluid/framework/details/reduce_and_gather.h"
 #include "paddle/fluid/framework/details/variable_visitor.h"
-#if defined PADDLE_WITH_CUDA && defined PADDLE_WITH_DISTRIBUTE
+#if (defined PADDLE_WITH_CUDA || defined PADDLE_WITH_HIP) && defined PADDLE_WITH_DISTRIBUTE
 #include "paddle/fluid/operators/distributed/collective_client.h"
 #include "paddle/fluid/operators/distributed/collective_server.h"
 #include "paddle/fluid/operators/distributed/request_handler.h"
@@ -48,7 +48,7 @@ void ReduceOpHandle::Wait(
   }
 }
 
-#if defined PADDLE_WITH_CUDA && defined PADDLE_WITH_DISTRIBUTE
+#if (defined PADDLE_WITH_CUDA || defined PADDLE_WITH_HIP) && defined PADDLE_WITH_DISTRIBUTE
 template <typename DevCtx, typename DataType>
 void ReduceOpHandle::GatherSelectedRows(
     const std::vector<const SelectedRows *> &src_selected_rows,
@@ -217,7 +217,7 @@ void ReduceOpHandle::RunImpl() {
         return;
       }
 
-#if defined PADDLE_WITH_CUDA && defined PADDLE_WITH_DISTRIBUTE
+#if (defined PADDLE_WITH_CUDA || defined PADDLE_WITH_HIP) && defined PADDLE_WITH_DISTRIBUTE
       if (in_selected_rows[0]->value().type() ==
           framework::proto::VarType::FP32) {
         GatherSelectedRows<platform::CUDADeviceContext, float>(
