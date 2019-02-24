@@ -18,12 +18,13 @@ namespace ops = paddle::operators;
 namespace plat = paddle::platform;
 
 REGISTER_OP_CUDA_KERNEL(
-    elementwise_mul,
-    ops::ElementwiseMulKernel<paddle::platform::CUDADeviceContext, float>,
-    ops::ElementwiseMulKernel<paddle::platform::CUDADeviceContext, double>,
-    ops::ElementwiseMulKernel<paddle::platform::CUDADeviceContext, int>);
+    elementwise_mul, ops::ElementwiseMulKernel<plat::CUDADeviceContext, float>,
+    ops::ElementwiseMulKernel<plat::CUDADeviceContext, double>,
+    ops::ElementwiseMulKernel<plat::CUDADeviceContext, int>,
+    ops::ElementwiseMulKernel<plat::CUDADeviceContext, plat::float16>);
 REGISTER_OP_CUDA_KERNEL(
     elementwise_mul_grad,
-    ops::ElementwiseMulGradKernel<paddle::platform::CUDADeviceContext, float>,
-    ops::ElementwiseMulGradKernel<paddle::platform::CUDADeviceContext, double>,
-    ops::ElementwiseMulGradKernel<paddle::platform::CUDADeviceContext, int>);
+    ops::ElementwiseMulGradKernel<plat::CUDADeviceContext, float>,
+    ops::ElementwiseMulGradKernel<plat::CUDADeviceContext, double>,
+    ops::ElementwiseMulGradKernel<plat::CUDADeviceContext, int>,
+    ops::ElementwiseMulGradKernel<plat::CUDADeviceContext, plat::float16>);
